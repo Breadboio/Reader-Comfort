@@ -35,13 +35,14 @@
     styleEl.id = "rc-draw-style";
     styleEl.textContent =
       "#rc-draw-layer{position:absolute;top:0;left:0;pointer-events:none;" +
-        "z-index:2147483645;overflow:visible}" +
+        "z-index:2147483644;overflow:visible}" +
       "#rc-draw-layer[data-active='true']{pointer-events:auto;cursor:crosshair}" +
       ".rc-draw-path{fill:none;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}" +
       "#rc-draw-layer[data-active='true'][data-tool='eraser'] .rc-draw-path{pointer-events:stroke}" +
       "#rc-draw-bar{position:fixed;bottom:16px;right:16px;z-index:2147483647;display:flex;" +
         "flex-direction:column;gap:6px;padding:8px;background:#fff;border:1px solid rgba(0,0,0,.18);" +
         "border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.24);font:12px/1 system-ui,sans-serif}" +
+      "#rc-draw-bar[hidden]{display:none!important}" +
       "#rc-draw-bar .rc-draw-row{display:flex;gap:5px;align-items:center}" +
       "#rc-draw-bar button{margin:0;padding:0;cursor:pointer;background:#eee;border:2px solid transparent;" +
         "border-radius:6px}" +

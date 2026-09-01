@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Reader Comfort",
-  "version": "1.2.0",
-  "description": "Page tint, text size, line spacing, accessible fonts, a reading ruler, a persistent highlighter, and freehand annotations on any page. The FortiGate study guide's reading system, pulled out into an extension.",
+  "version": "1.3.0",
+  "description": "Reading tools for any web page: page tint, text size and spacing, accessible fonts, a reading ruler, a persistent highlighter, freehand annotations, and sticky notes.",
   "browser_specific_settings": {
     "gecko": {
       "id": "reader-comfort@breadtoasting.com",
@@ -32,7 +32,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js", "highlighter.js", "annotate.js"],
+      "js": ["content.js", "highlighter.js", "annotate.js", "notes.js"],
       "run_at": "document_start",
       "all_frames": false
     }
@@ -49,8 +49,7 @@
       "description": "Toggle the reading ruler"
     },
     "toggle-enabled": {
-      "suggested_key": { "default": "Alt+Shift+R" },
-      "description": "Toggle Reader Comfort on this page"
+      "description": "Toggle Reader Comfort on this page (bind a key in the browser's shortcuts page)"
     },
     "toggle-highlight-quick": {
       "suggested_key": { "default": "Alt+H" },
@@ -59,6 +58,10 @@
     "toggle-draw-mode": {
       "suggested_key": { "default": "Alt+D" },
       "description": "Toggle freehand-draw mode"
+    },
+    "add-note": {
+      "suggested_key": { "default": "Alt+N" },
+      "description": "Add a sticky note"
     }
   }
 }

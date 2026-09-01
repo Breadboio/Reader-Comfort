@@ -41,6 +41,7 @@
       "#rc-hl-bar{position:absolute;z-index:2147483647;display:flex;gap:5px;align-items:center;" +
         "padding:5px 6px;background:#fff;border:1px solid rgba(0,0,0,.18);border-radius:9px;" +
         "box-shadow:0 6px 20px rgba(0,0,0,.24);font:12px/1 system-ui,-apple-system,Segoe UI,sans-serif}" +
+      "#rc-hl-bar[hidden]{display:none!important}" +
       "#rc-hl-bar button{margin:0;padding:0;width:19px;height:19px;border-radius:50%;" +
         "border:2px solid rgba(0,0,0,.18);cursor:pointer;background:#ccc}" +
       "#rc-hl-bar button[data-c='yellow']{background:" + COLORS.yellow + "}" +

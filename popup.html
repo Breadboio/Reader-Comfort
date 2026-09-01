@@ -75,7 +75,7 @@
     border-radius:4px; padding:0 4px; font-size:10.5px;
   }
   .disabled{ opacity:.4; pointer-events:none; }
-  .disabled #hlSection, .disabled #drSection{ opacity:1; pointer-events:auto; }
+  .disabled #hlSection, .disabled #drSection, .disabled #ntSection{ opacity:1; pointer-events:auto; }
 </style>
 </head>
 <body>
@@ -218,11 +218,29 @@
     </div>
     <p class="note">Turn on draw mode (<kbd>Alt</kbd>+<kbd>D</kbd>), then drag anywhere on the page to draw. A small toolbar appears on the page itself while it's on. Turn it off to use the page normally again &mdash; ink stays put.</p>
   </div>
+
+  <div class="row" id="ntSection">
+    <span class="label">Sticky notes</span>
+    <div class="chips" id="ntColor">
+      <button class="swatch" data-ntc="yellow" style="background:#fff4b8" title="Yellow" aria-label="Yellow"></button>
+      <button class="swatch" data-ntc="pink"   style="background:#ffd9e8" title="Pink"   aria-label="Pink"></button>
+      <button class="swatch" data-ntc="blue"   style="background:#d6e8ff" title="Blue"   aria-label="Blue"></button>
+      <button class="swatch" data-ntc="green"  style="background:#d6f5df" title="Green"  aria-label="Green"></button>
+    </div>
+    <div class="inline">
+      <span class="note" id="ntCount">No notes on this page</span>
+      <span style="display:flex; gap:6px">
+        <button class="chip" id="ntAdd">Add note</button>
+        <button class="chip" id="ntClear">Clear page</button>
+      </span>
+    </div>
+    <p class="note">Drop a note (<kbd>Alt</kbd>+<kbd>N</kbd>), drag it by its bar, drag the corner to resize, click the dot to recolour. Notes stay on the page and come back on reload.</p>
+  </div>
 </div>
 
 <footer>
-  <kbd>Alt</kbd>+<kbd>R</kbd> ruler &nbsp;·&nbsp; <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> on/off
-  &nbsp;·&nbsp; <kbd>Alt</kbd>+<kbd>D</kbd> draw
+  <kbd>Alt</kbd>+<kbd>R</kbd> ruler &nbsp;·&nbsp; <kbd>Alt</kbd>+<kbd>H</kbd> highlight
+  &nbsp;·&nbsp; <kbd>Alt</kbd>+<kbd>D</kbd> draw &nbsp;·&nbsp; <kbd>Alt</kbd>+<kbd>N</kbd> note
 </footer>
 
 <script src="popup.js"></script>
