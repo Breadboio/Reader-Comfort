@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Reader Comfort",
-  "version": "1.1.1",
-  "description": "Page tint, text size, line spacing, accessible fonts, a reading ruler, and a persistent highlighter on any page. The FortiGate study guide's reading system, pulled out into an extension.",
+  "version": "1.2.0",
+  "description": "Page tint, text size, line spacing, accessible fonts, a reading ruler, a persistent highlighter, and freehand annotations on any page. The FortiGate study guide's reading system, pulled out into an extension.",
   "browser_specific_settings": {
     "gecko": {
       "id": "reader-comfort@breadtoasting.com",
@@ -32,7 +32,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js", "highlighter.js"],
+      "js": ["content.js", "highlighter.js", "annotate.js"],
       "run_at": "document_start",
       "all_frames": false
     }
@@ -55,6 +55,10 @@
     "toggle-highlight-quick": {
       "suggested_key": { "default": "Alt+H" },
       "description": "Toggle quick-highlight mode (highlight on select)"
+    },
+    "toggle-draw-mode": {
+      "suggested_key": { "default": "Alt+D" },
+      "description": "Toggle freehand-draw mode"
     }
   }
 }

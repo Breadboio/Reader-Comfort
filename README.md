@@ -17,12 +17,17 @@ applies the reading system from `breadtoasting.com/fortigate-study-guide` to
   highlights persist per-URL and are re-anchored on reload. Click a highlight
   to recolour or remove it. "Quick mode" (`Alt+H`) highlights the instant you
   select. Popup has per-page count, **Copy all**, and **Clear page**.
+- **Draw / annotate** — a full-page freehand layer for arrows, circles,
+  scribbles, whatever. Toggle draw mode (`Alt+D` or the popup), a small
+  toolbar appears on the page (colour, thin/medium/thick, pen/eraser,
+  undo, clear); drag anywhere to draw. Turn draw mode off and the page is
+  interactive again — the ink stays put and persists per-URL.
 - Show italics as bold instead · underline all links · reduce animation
 
 Reading-tool settings are stored in `chrome.storage.sync`. By default they
 apply to every site; the popup can also save a **per-site** override (e.g. a
-bigger font only on `docs.fortinet.com`). Highlights and the highlighter
-prefs live in `chrome.storage.local`, keyed by `origin + pathname + search`.
+bigger font only on `docs.fortinet.com`). Highlights, annotations, and their
+tool prefs live in `chrome.storage.local`, keyed by `origin + pathname + search`.
 
 ## Load it
 
@@ -48,7 +53,7 @@ warning — that key is there for Firefox and Chrome ignores it.
   so tint/fonts/highlighter won't appear on a page until it's granted.
 
 Keyboard: `Alt+R` ruler, `Alt+Shift+R` extension on/off, `Alt+H` quick-highlight
-mode. Rebind at `chrome://extensions/shortcuts` (Chrome) or
+mode, `Alt+D` draw mode. Rebind at `chrome://extensions/shortcuts` (Chrome) or
 `about:addons` → gear → *Manage Extension Shortcuts* (Firefox).
 
 ## How it works
@@ -60,6 +65,11 @@ mode. Rebind at `chrome://extensions/shortcuts` (Chrome) or
   is stored as a text-quote anchor (`exact` + ~40 chars of `prefix`/`suffix`);
   on reload it flattens the page's text nodes, finds the best context match,
   and re-wraps. A short-lived MutationObserver retries late-rendered content.
+- `annotate.js` appends one absolutely-positioned `<svg>` overlay sized to the
+  full document. Draw mode flips its `pointer-events` on and captures Pointer
+  Events; each stroke is a `<path>` (midpoint-smoothed) stored as a point list
+  in **document** coordinates. A `ResizeObserver` keeps the overlay matched to
+  the document's size.
 - The popup edits a settings object, writes it to storage, and sends the
   content script a live-preview message. `storage.onChanged` keeps other tabs
   in sync.
@@ -88,6 +98,13 @@ mode. Rebind at `chrome://extensions/shortcuts` (Chrome) or
   or the passage is behind a tab/accordion that never opens, that highlight
   won't restore — the popup reports how many didn't. Highlighting across
   complex nested markup (tables, code blocks) can occasionally split oddly.
+- **Annotations are positioned by absolute document coordinates**, not anchored
+  to content. They scroll with the page and survive reloads, but if the page's
+  layout above them changes between visits (responsive reflow, an injected
+  banner, lazy-loaded content), the ink drifts relative to what it was marking.
+  Fine for a quick markup pass; not a durable record. While draw mode is on the
+  overlay covers the page, so links/buttons underneath aren't clickable until
+  you turn it off.
 
 ## Files
 
@@ -95,6 +112,7 @@ mode. Rebind at `chrome://extensions/shortcuts` (Chrome) or
 manifest.json      MV3 manifest
 content.js         the reading engine (tint / size / spacing / font / ruler)
 highlighter.js     select-to-highlight, persistence, re-anchoring
+annotate.js        freehand draw layer, persistence
 background.js      keyboard-command relay
 popup.html/.js     the "Aa" control panel
 fonts/*.woff2      Atkinson Hyperlegible, Lexend, OpenDyslexic (self-hosted)
