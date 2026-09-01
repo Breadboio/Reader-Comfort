@@ -18,12 +18,14 @@
     blue:   "rgba(130,177,255,.45)"
   };
 
-  var prefs = { color: "yellow", quick: false, enabled: true };
+  var prefs = { color: "yellow", quick: false, enabled: true, dict: false };
   var highlights = [];         // [{id, exact, prefix, suffix, color}]
   var restored = {};           // id -> true once wrapped into the DOM
   var pendingRange = null;
-  var bar = null, styleEl = null;
+  var bar = null, styleEl = null, dictEl = null;
+  var dictCache = {};          // word -> rendered HTML (session only)
   var observer = null, stopObserverAt = 0;
+  var DICT_API = "https://api.dictionaryapi.dev/api/v2/entries/en/";
 
   /* ---------- styling ---------- */
 
@@ -52,7 +54,17 @@
       "#rc-hl-bar button[data-c='blue']{background:" + COLORS.blue + "}" +
       "#rc-hl-bar button[aria-pressed='true']{outline:2px solid #333;outline-offset:1px}" +
       "#rc-hl-bar .rc-hl-act{width:auto;height:auto;border-radius:6px;padding:3px 8px;" +
-        "border:1px solid rgba(0,0,0,.18);background:#f1f1f1;color:#222;font-weight:600}";
+        "border:1px solid rgba(0,0,0,.18);background:#f1f1f1;color:#222;font-weight:600}" +
+      /* dictionary card */
+      "#rc-hl-dict{position:absolute;z-index:2147483647;max-width:320px;padding:10px 12px;" +
+        "background:#fff;color:#1c1c1c;border:1px solid rgba(0,0,0,.18);border-radius:9px;" +
+        "box-shadow:0 6px 22px rgba(0,0,0,.26);font:13px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}" +
+      "#rc-hl-dict[hidden]{display:none!important}" +
+      "#rc-hl-dict .rc-d-word{font-weight:700;font-size:14px}" +
+      "#rc-hl-dict .rc-d-ph{color:#666;margin-left:6px;font-size:12px}" +
+      "#rc-hl-dict .rc-d-pos{font-style:italic;color:#555}" +
+      "#rc-hl-dict p{margin:6px 0 0}" +
+      "#rc-hl-dict .rc-d-src{margin-top:8px;font-size:11px;color:#888}";
     (document.head || document.documentElement).appendChild(styleEl);
   }
 
@@ -321,6 +333,95 @@
     if (bar) { bar.hidden = true; bar._markId = null; }
   }
 
+  /* ---------- dictionary (opt-in, api.dictionaryapi.dev) ---------- */
+
+  function wordAtPoint(x, y) {
+    var node, offset;
+    if (document.caretRangeFromPoint) {
+      var r = document.caretRangeFromPoint(x, y);
+      if (r) { node = r.startContainer; offset = r.startOffset; }
+    } else if (document.caretPositionFromPoint) {
+      var p = document.caretPositionFromPoint(x, y);
+      if (p) { node = p.offsetNode; offset = p.offset; }
+    }
+    if (!node || node.nodeType !== 3) return "";
+    var s = node.data, a = offset, b = offset, W = /[A-Za-zÀ-ɏ'-]/;
+    while (a > 0 && W.test(s.charAt(a - 1))) a--;
+    while (b < s.length && W.test(s.charAt(b))) b++;
+    return s.slice(a, b).replace(/^['-]+|['-]+$/g, "");
+  }
+
+  function ensureDict() {
+    if (dictEl && dictEl.isConnected) return dictEl;
+    dictEl = document.createElement("div");
+    dictEl.id = "rc-hl-dict";
+    dictEl.hidden = true;
+    (document.body || document.documentElement).appendChild(dictEl);
+    return dictEl;
+  }
+
+  function hideDict() { if (dictEl) dictEl.hidden = true; }
+
+  function showDict(x, y, html) {
+    var d = ensureDict();
+    d.innerHTML = html + "<div class='rc-d-src'>dictionaryapi.dev</div>";
+    d.hidden = false;
+    d.style.visibility = "hidden";
+    var dw = d.offsetWidth, dh = d.offsetHeight;
+    var left = window.scrollX + x;
+    var top = window.scrollY + y + 14;
+    var maxLeft = window.scrollX + document.documentElement.clientWidth - dw - 8;
+    if (left > maxLeft) left = maxLeft;
+    if (left < window.scrollX + 8) left = window.scrollX + 8;
+    if (y + 14 + dh > document.documentElement.clientHeight && y - dh - 6 > 0) {
+      top = window.scrollY + y - dh - 6;
+    }
+    d.style.left = left + "px";
+    d.style.top = top + "px";
+    d.style.visibility = "visible";
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+
+  function renderEntry(data) {
+    var e = data && data[0];
+    if (!e) return null;
+    var html = "<span class='rc-d-word'>" + esc(e.word) + "</span>";
+    var ph = e.phonetic || (e.phonetics || []).map(function (p) { return p.text; }).filter(Boolean)[0];
+    if (ph) html += "<span class='rc-d-ph'>" + esc(ph) + "</span>";
+    var lines = 0;
+    (e.meanings || []).forEach(function (m) {
+      if (lines >= 3) return;
+      (m.definitions || []).slice(0, 2).forEach(function (def) {
+        if (lines >= 3) return;
+        html += "<p><span class='rc-d-pos'>" + esc(m.partOfSpeech || "") + "</span> " + esc(def.definition) + "</p>";
+        lines++;
+      });
+    });
+    return html;
+  }
+
+  function lookup(word, x, y) {
+    var key = word.toLowerCase();
+    if (dictCache[key]) { showDict(x, y, dictCache[key]); return; }
+    showDict(x, y, "<span class='rc-d-word'>" + esc(word) + "</span><p>Looking up…</p>");
+    fetch(DICT_API + encodeURIComponent(key), { credentials: "omit" })
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+      .then(function (data) {
+        var html = renderEntry(data);
+        if (!html) return Promise.reject("empty");
+        dictCache[key] = html;
+        showDict(x, y, html);
+      })
+      .catch(function () {
+        showDict(x, y, "<span class='rc-d-word'>" + esc(word) + "</span><p>No definition found.</p>");
+      });
+  }
+
   /* ---------- actions ---------- */
 
   function applyHighlight(range, color) {
@@ -360,7 +461,7 @@
   }
 
   function savePrefs() {
-    var o = {}; o[PREFS_KEY] = { color: prefs.color, quick: prefs.quick, enabled: prefs.enabled };
+    var o = {}; o[PREFS_KEY] = { color: prefs.color, quick: prefs.quick, enabled: prefs.enabled, dict: prefs.dict };
     try { chrome.storage.local.set(o); } catch (e) {}
   }
 
@@ -405,13 +506,26 @@
     }
   }, true);
 
+  document.addEventListener("contextmenu", function (e) {
+    if (!prefs.enabled || !prefs.dict) return;
+    if (dictEl && dictEl.contains(e.target)) return;
+    var mark = e.target.closest && e.target.closest("mark.rc-hl");
+    if (!mark) return;
+    var word = wordAtPoint(e.clientX, e.clientY);
+    if (!word && !/\s/.test(mark.textContent.trim())) word = mark.textContent.trim();
+    if (!word || word.length > 40) return;
+    e.preventDefault();
+    lookup(word, e.clientX, e.clientY);
+  }, true);
+
   document.addEventListener("mousedown", function (e) {
     if (bar && !bar.hidden && !bar.contains(e.target)) hideBar();
+    if (dictEl && !dictEl.hidden && !dictEl.contains(e.target)) hideDict();
   }, true);
   document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape" && bar && !bar.hidden) hideBar();
+    if (e.key === "Escape") { hideBar(); hideDict(); }
   }, true);
-  window.addEventListener("scroll", hideBar, true);
+  window.addEventListener("scroll", function () { hideBar(); hideDict(); }, true);
 
   /* ---------- messaging ---------- */
 
@@ -424,6 +538,7 @@
         color: prefs.color,
         quick: prefs.quick,
         enabled: prefs.enabled,
+        dict: prefs.dict,
         colors: COLORS
       });
       return true;
@@ -431,7 +546,8 @@
     if (msg.type === "rc:hlSet") {
       if (typeof msg.color === "string") prefs.color = msg.color;
       if (typeof msg.quick === "boolean") prefs.quick = msg.quick;
-      if (typeof msg.enabled === "boolean") { prefs.enabled = msg.enabled; applyEnabled(); if (!prefs.enabled) hideBar(); }
+      if (typeof msg.dict === "boolean") { prefs.dict = msg.dict; if (!prefs.dict) hideDict(); }
+      if (typeof msg.enabled === "boolean") { prefs.enabled = msg.enabled; applyEnabled(); if (!prefs.enabled) { hideBar(); hideDict(); } }
       savePrefs();
     }
     if (msg.type === "rc:hlCopyAll") {

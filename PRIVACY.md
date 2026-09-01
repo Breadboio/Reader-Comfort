@@ -1,9 +1,10 @@
 # Privacy Policy — Reader Comfort
 
-_Last updated: 2026-09-01_
+_Last updated: 2026-09-02_
 
-**Reader Comfort does not collect, transmit, sell, or share any data. There is
-no server, no analytics, and no tracking.**
+**Reader Comfort does not collect, sell, or share any data. There is no
+server, no analytics, and no tracking. It makes no network requests at all,
+with one exception you have to turn on yourself (the dictionary — see below).**
 
 ## What the extension stores
 
@@ -17,9 +18,18 @@ the standard extension storage APIs (`chrome.storage.sync` and
 | Highlights, annotations, and sticky notes you create, keyed by page URL | `storage.local` | So they reappear when you revisit a page |
 | Which colour / tool you last used | `storage.local` | Convenience |
 
-This data never leaves your browser. The extension makes **no network
-requests** of any kind — the fonts it uses are bundled inside the extension
-package.
+This data never leaves your browser. The fonts the extension uses are bundled
+inside the package, not fetched.
+
+## The dictionary (opt-in, off by default)
+
+If — and only if — you tick **"Right-click a highlighted word for its
+definition"** in the popup, then right-clicking a highlighted word sends **that
+one word** to the free, keyless public API at `api.dictionaryapi.dev` to fetch
+its definition. Nothing else is sent: no page URL, no other page text, no
+identifier, no cookies (`credentials: "omit"`). Definitions fetched during a
+visit are cached in memory for that page only. This is the extension's only
+network request, and it never happens while the setting is off.
 
 ## Permissions
 
@@ -28,6 +38,8 @@ package.
   and notes work on whatever page you're reading, so the content script needs
   to run on any site. It only reads and restyles the page you're actively on;
   it does not send page content anywhere.
+- **`https://api.dictionaryapi.dev/*`** — only used for the opt-in dictionary
+  lookup above.
 - **`activeTab`** — so the popup can talk to the tab you clicked it from.
 - **`clipboardWrite`** — for the "Copy all highlights" button.
 

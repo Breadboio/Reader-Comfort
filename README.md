@@ -22,6 +22,10 @@ applies the reading system from `breadtoasting.com/fortigate-study-guide` to
   special and existing highlights disappear until you switch it back on
   (`Esc` also dismisses the colour bar). Popup has per-page count, **Copy
   all**, and **Clear page**.
+- **Right-click dictionary** (opt-in) — with it enabled in the popup,
+  right-click a highlighted word to get a small definition card
+  (`api.dictionaryapi.dev`, no key). This is the *only* network call the
+  extension makes, and only that one word is sent — see `PRIVACY.md`.
 - **Draw / annotate** — a full-page freehand layer for arrows, circles,
   scribbles, whatever. Toggle draw mode (`Alt+D` or the popup), a small
   toolbar appears on the page (colour, thin/medium/thick, pen/eraser,
