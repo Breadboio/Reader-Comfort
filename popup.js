@@ -42,6 +42,7 @@
       render();
     });
     initHighlighter();
+    initAnnotate();
   });
 
   function degrade(msg) {
@@ -115,6 +116,77 @@
     var old = btn.textContent;
     btn.textContent = text;
     setTimeout(function () { btn.textContent = old; }, 1200);
+  }
+
+  /* ---------- annotate (draw) ---------- */
+
+  function drSend(msg, cb) { hlSend(msg, cb); }
+
+  function initAnnotate() {
+    drSend({ type: "rc:drawGetState" }, function (st) {
+      if (!st) { $("drSection").classList.add("disabled"); return; }
+      $("drMode").setAttribute("aria-pressed", String(!!st.drawMode));
+      paintDrColor(st.color);
+      paintDrWidth(st.width);
+      paintDrTool(st.tool);
+      paintDrCount(st.count);
+    });
+
+    $("drMode").addEventListener("click", function () {
+      var on = this.getAttribute("aria-pressed") !== "true";
+      this.setAttribute("aria-pressed", String(on));
+      drSend({ type: "rc:drawSet", drawMode: on }, function () {
+        drSend({ type: "rc:drawGetState" }, function (st) { if (st) paintDrCount(st.count); });
+      });
+    });
+    $("drColor").addEventListener("click", function (e) {
+      var b = e.target.closest("[data-drc]"); if (!b) return;
+      var c = b.getAttribute("data-drc");
+      paintDrColor(c);
+      drSend({ type: "rc:drawSet", color: c });
+    });
+    $("drWidth").addEventListener("click", function (e) {
+      var b = e.target.closest("[data-drw]"); if (!b) return;
+      var w = b.getAttribute("data-drw");
+      paintDrWidth(w);
+      drSend({ type: "rc:drawSet", width: w });
+    });
+    $("drTool").addEventListener("click", function (e) {
+      var b = e.target.closest("[data-drt]"); if (!b) return;
+      var t = b.getAttribute("data-drt");
+      paintDrTool(t);
+      drSend({ type: "rc:drawSet", tool: t });
+    });
+    $("drUndo").addEventListener("click", function () {
+      drSend({ type: "rc:drawUndo" }, function () {
+        drSend({ type: "rc:drawGetState" }, function (st) { if (st) paintDrCount(st.count); });
+      });
+    });
+    $("drClear").addEventListener("click", function () {
+      drSend({ type: "rc:drawClearPage" }, function () {
+        paintDrCount(0);
+        flash($("drClear"), "Cleared");
+      });
+    });
+  }
+
+  function paintDrColor(c) {
+    Array.prototype.forEach.call($("drColor").querySelectorAll("[data-drc]"), function (b) {
+      b.setAttribute("aria-pressed", String(b.getAttribute("data-drc") === c));
+    });
+  }
+  function paintDrWidth(w) {
+    Array.prototype.forEach.call($("drWidth").querySelectorAll("[data-drw]"), function (b) {
+      b.setAttribute("aria-pressed", String(b.getAttribute("data-drw") === w));
+    });
+  }
+  function paintDrTool(t) {
+    Array.prototype.forEach.call($("drTool").querySelectorAll("[data-drt]"), function (b) {
+      b.setAttribute("aria-pressed", String(b.getAttribute("data-drt") === t));
+    });
+  }
+  function paintDrCount(count) {
+    $("drCount").textContent = count ? (count + (count === 1 ? " annotation" : " annotations")) : "No annotations on this page";
   }
 
   /* ---------- persistence + live preview ---------- */

@@ -75,7 +75,7 @@
     border-radius:4px; padding:0 4px; font-size:10.5px;
   }
   .disabled{ opacity:.4; pointer-events:none; }
-  .disabled #hlSection{ opacity:1; pointer-events:auto; }
+  .disabled #hlSection, .disabled #drSection{ opacity:1; pointer-events:auto; }
 </style>
 </head>
 <body>
@@ -187,10 +187,42 @@
     </div>
     <p class="note">Not in quick mode: select text, then click a colour in the little bar. Click a highlight to recolour or remove it.</p>
   </div>
+
+  <div class="row" id="drSection">
+    <div class="inline">
+      <span class="label" style="margin:0">Draw / annotate</span>
+      <button class="toggle" id="drMode" aria-pressed="false" aria-label="Draw mode"></button>
+    </div>
+    <div class="chips" id="drColor">
+      <button class="swatch" data-drc="red"    style="background:#e03131" title="Red"    aria-label="Red"></button>
+      <button class="swatch" data-drc="orange" style="background:#f08c00" title="Orange" aria-label="Orange"></button>
+      <button class="swatch" data-drc="yellow" style="background:#f2c94c" title="Yellow"  aria-label="Yellow"></button>
+      <button class="swatch" data-drc="green"  style="background:#2fbf71" title="Green"  aria-label="Green"></button>
+      <button class="swatch" data-drc="blue"   style="background:#4098ff" title="Blue"   aria-label="Blue"></button>
+    </div>
+    <div class="chips" id="drWidth">
+      <button class="chip" data-drw="s">Thin</button>
+      <button class="chip" data-drw="m" aria-pressed="true">Medium</button>
+      <button class="chip" data-drw="l">Thick</button>
+    </div>
+    <div class="chips" id="drTool">
+      <button class="chip" data-drt="pen" aria-pressed="true">Pen</button>
+      <button class="chip" data-drt="eraser">Eraser</button>
+    </div>
+    <div class="inline">
+      <span class="note" id="drCount">No annotations on this page</span>
+      <span style="display:flex; gap:6px">
+        <button class="chip" id="drUndo">Undo</button>
+        <button class="chip" id="drClear">Clear page</button>
+      </span>
+    </div>
+    <p class="note">Turn on draw mode (<kbd>Alt</kbd>+<kbd>D</kbd>), then drag anywhere on the page to draw. A small toolbar appears on the page itself while it's on. Turn it off to use the page normally again &mdash; ink stays put.</p>
+  </div>
 </div>
 
 <footer>
   <kbd>Alt</kbd>+<kbd>R</kbd> ruler &nbsp;·&nbsp; <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> on/off
+  &nbsp;·&nbsp; <kbd>Alt</kbd>+<kbd>D</kbd> draw
 </footer>
 
 <script src="popup.js"></script>
