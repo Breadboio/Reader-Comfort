@@ -67,8 +67,15 @@
       if (!st) { $("hlSection").classList.add("disabled"); return; }
       paintHlColor(st.color);
       $("hlQuick").checked = !!st.quick;
+      $("hlDict").checked = !!st.dict;
+      $("hlDictNote").hidden = !st.dict;
       $("hlEnabled").setAttribute("aria-pressed", String(st.enabled !== false));
       paintHlCount(st.count, st.restoredCount);
+    });
+
+    $("hlDict").addEventListener("change", function () {
+      $("hlDictNote").hidden = !this.checked;
+      hlSend({ type: "rc:hlSet", dict: this.checked });
     });
 
     $("hlEnabled").addEventListener("click", function () {

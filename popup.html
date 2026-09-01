@@ -182,6 +182,8 @@
       <button class="swatch" data-hlc="blue"   style="background:#82b1ff" title="Blue"   aria-label="Blue"></button>
     </div>
     <label class="check"><input type="checkbox" id="hlQuick"> Quick mode &mdash; highlight the moment you select (<kbd>Alt</kbd>+<kbd>H</kbd>)</label>
+    <label class="check"><input type="checkbox" id="hlDict"> Right-click a highlighted word for its definition</label>
+    <p class="note" id="hlDictNote" hidden>Looking up a word sends just that word to <b>api.dictionaryapi.dev</b>. This is the only time the extension talks to the network; it's off unless you check this.</p>
     <div class="inline">
       <span class="note" id="hlCount">No highlights on this page</span>
       <span style="display:flex; gap:6px">
