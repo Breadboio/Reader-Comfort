@@ -19,6 +19,7 @@
     measure: "off",     // off | narrow  (cap line length on the main column)
     ruler: false,
     rulerHeight: 130,
+    rulerDblclick: true, // double-click the page toggles the ruler
     killItalics: false, // render <em>/<i> as bold instead of slanted
     linkUnderline: false,
     reduceMotion: false
@@ -253,26 +254,35 @@
       apply(Object.assign({}, DEFAULTS, msg.settings || {}));
     }
     if (msg && msg.type === "rc:command") {
-      if (msg.command !== "toggle-ruler" && msg.command !== "toggle-enabled") return;
-      chrome.storage.sync.get(["global", "sites"], function (store) {
-        store = store || {};
-        var eff = computeEffective(store);
-        if (msg.command === "toggle-ruler") eff.ruler = !eff.ruler;
-        if (msg.command === "toggle-enabled") eff.enabled = !eff.enabled;
-        // persist to whichever layer currently governs this origin
-        var sites = store.sites || {};
-        if (sites[ORIGIN]) {
-          sites[ORIGIN] = Object.assign({}, sites[ORIGIN],
-            msg.command === "toggle-ruler" ? { ruler: eff.ruler } : { enabled: eff.enabled });
-          chrome.storage.sync.set({ sites: sites });
-        } else {
-          var g = Object.assign({}, DEFAULTS, store.global || {});
-          if (msg.command === "toggle-ruler") g.ruler = eff.ruler;
-          if (msg.command === "toggle-enabled") g.enabled = eff.enabled;
-          chrome.storage.sync.set({ global: g });
-        }
-      });
+      if (msg.command === "toggle-ruler") persistPatch({ ruler: !current.ruler });
+      if (msg.command === "toggle-enabled") persistPatch({ enabled: !current.enabled });
     }
+  });
+
+  /* write a partial settings change to whichever layer governs this origin */
+  function persistPatch(patch) {
+    chrome.storage.sync.get(["global", "sites"], function (store) {
+      store = store || {};
+      var sites = store.sites || {};
+      if (sites[ORIGIN]) {
+        sites[ORIGIN] = Object.assign({}, sites[ORIGIN], patch);
+        chrome.storage.sync.set({ sites: sites });
+      } else {
+        chrome.storage.sync.set({ global: Object.assign({}, DEFAULTS, store.global || {}, patch) });
+      }
+    });
+  }
+
+  /* ---------- double-click toggles the ruler ---------- */
+
+  var IGNORE_DBLCLICK = "input,textarea,select,button,a,[contenteditable=''],[contenteditable='true']," +
+    "[role='button'],[role='textbox'],[role='link'],[role='menuitem'],video,audio";
+  document.addEventListener("dblclick", function (e) {
+    if (!current.enabled || !current.rulerDblclick) return;
+    if (e.target && e.target.closest && e.target.closest(IGNORE_DBLCLICK)) return;
+    persistPatch({ ruler: !current.ruler });
+    var sel = window.getSelection();
+    if (sel) sel.removeAllRanges();
   });
 
   /* ---------- boot ---------- */

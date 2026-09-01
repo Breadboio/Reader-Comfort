@@ -161,6 +161,7 @@
       <button class="toggle" id="ruler" aria-pressed="false" aria-label="Reading ruler"></button>
     </div>
     <input type="range" id="rulerHeight" min="40" max="320" step="10" value="130" aria-label="Ruler height">
+    <label class="check"><input type="checkbox" id="rulerDblclick"> Double-click the page to toggle the ruler</label>
   </div>
 
   <div class="row">
@@ -170,7 +171,10 @@
   </div>
 
   <div class="row" id="hlSection">
-    <span class="label">Highlighter</span>
+    <div class="inline">
+      <span class="label" style="margin:0">Highlighter</span>
+      <button class="toggle" id="hlEnabled" aria-pressed="true" aria-label="Highlighter on/off"></button>
+    </div>
     <div class="chips" id="hlColor">
       <button class="swatch" data-hlc="yellow" style="background:#ffd600" title="Yellow" aria-label="Yellow"></button>
       <button class="swatch" data-hlc="green"  style="background:#78e08f" title="Green"  aria-label="Green"></button>
@@ -185,7 +189,7 @@
         <button class="chip" id="hlClear">Clear page</button>
       </span>
     </div>
-    <p class="note">Not in quick mode: select text, then click a colour in the little bar. Click a highlight to recolour or remove it.</p>
+    <p class="note">Turn it off and selecting text does nothing special &mdash; existing highlights disappear until you turn it back on. In quick mode, selecting text highlights it right away.</p>
   </div>
 
   <div class="row" id="drSection">

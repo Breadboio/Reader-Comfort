@@ -5,7 +5,7 @@
   var DEFAULTS = {
     enabled: true, tint: "off", size: 100, leading: "off", spacing: "off",
     font: "off", measure: "off", ruler: false, rulerHeight: 130,
-    killItalics: false, linkUnderline: false, reduceMotion: false
+    rulerDblclick: true, killItalics: false, linkUnderline: false, reduceMotion: false
   };
 
   var tabId = null;
@@ -67,9 +67,15 @@
       if (!st) { $("hlSection").classList.add("disabled"); return; }
       paintHlColor(st.color);
       $("hlQuick").checked = !!st.quick;
+      $("hlEnabled").setAttribute("aria-pressed", String(st.enabled !== false));
       paintHlCount(st.count, st.restoredCount);
     });
 
+    $("hlEnabled").addEventListener("click", function () {
+      var on = this.getAttribute("aria-pressed") !== "true";
+      this.setAttribute("aria-pressed", String(on));
+      hlSend({ type: "rc:hlSet", enabled: on });
+    });
     $("hlColor").addEventListener("click", function (e) {
       var btn = e.target.closest("[data-hlc]");
       if (!btn) return;
@@ -271,6 +277,7 @@
     $("sizeVal").textContent = s.size + "%";
     $("ruler").setAttribute("aria-pressed", String(s.ruler));
     $("rulerHeight").value = s.rulerHeight;
+    $("rulerDblclick").checked = s.rulerDblclick !== false;
     $("killItalics").checked = s.killItalics;
     $("linkUnderline").checked = s.linkUnderline;
     $("reduceMotion").checked = s.reduceMotion;
@@ -345,7 +352,7 @@
       s.rulerHeight = parseInt(this.value, 10) || 130; commit();
     });
 
-    ["killItalics", "linkUnderline", "reduceMotion"].forEach(function (k) {
+    ["rulerDblclick", "killItalics", "linkUnderline", "reduceMotion"].forEach(function (k) {
       $(k).addEventListener("change", function () { s[k] = this.checked; commit(); });
     });
   }
