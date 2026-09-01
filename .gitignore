@@ -1,4 +1,6 @@
 # build / packaging output
+build/
+dist/
 web-ext-artifacts/
 *.zip
 *.xpi

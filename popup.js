@@ -43,6 +43,7 @@
     });
     initHighlighter();
     initAnnotate();
+    initNotes();
   });
 
   function degrade(msg) {
@@ -187,6 +188,43 @@
   }
   function paintDrCount(count) {
     $("drCount").textContent = count ? (count + (count === 1 ? " annotation" : " annotations")) : "No annotations on this page";
+  }
+
+  /* ---------- sticky notes ---------- */
+
+  function initNotes() {
+    hlSend({ type: "rc:notesGetState" }, function (st) {
+      if (!st) { $("ntSection").classList.add("disabled"); return; }
+      paintNtColor(st.color);
+      paintNtCount(st.count);
+    });
+    $("ntColor").addEventListener("click", function (e) {
+      var b = e.target.closest("[data-ntc]"); if (!b) return;
+      var c = b.getAttribute("data-ntc");
+      paintNtColor(c);
+      hlSend({ type: "rc:notesSet", color: c });
+    });
+    $("ntAdd").addEventListener("click", function () {
+      hlSend({ type: "rc:notesAdd" }, function (resp) {
+        if (resp) paintNtCount(resp.count);
+        flash($("ntAdd"), "Added");
+      });
+    });
+    $("ntClear").addEventListener("click", function () {
+      hlSend({ type: "rc:notesClearPage" }, function () {
+        paintNtCount(0);
+        flash($("ntClear"), "Cleared");
+      });
+    });
+  }
+
+  function paintNtColor(c) {
+    Array.prototype.forEach.call($("ntColor").querySelectorAll("[data-ntc]"), function (b) {
+      b.setAttribute("aria-pressed", String(b.getAttribute("data-ntc") === c));
+    });
+  }
+  function paintNtCount(count) {
+    $("ntCount").textContent = count ? (count + (count === 1 ? " note" : " notes")) : "No notes on this page";
   }
 
   /* ---------- persistence + live preview ---------- */
