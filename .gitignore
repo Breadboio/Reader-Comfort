@@ -1,0 +1,16 @@
+# build / packaging output
+web-ext-artifacts/
+*.zip
+*.xpi
+*.crx
+*.pem
+
+# dependencies (none currently, but keep it safe)
+node_modules/
+
+# editor / OS cruft
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
