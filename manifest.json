@@ -1,0 +1,60 @@
+{
+  "manifest_version": 3,
+  "name": "Reader Comfort",
+  "version": "1.1.1",
+  "description": "Page tint, text size, line spacing, accessible fonts, a reading ruler, and a persistent highlighter on any page. The FortiGate study guide's reading system, pulled out into an extension.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "reader-comfort@breadtoasting.com",
+      "strict_min_version": "115.0"
+    }
+  },
+  "permissions": ["storage", "activeTab", "clipboardWrite"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js",
+    "scripts": ["background.js"]
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Reader Comfort",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js", "highlighter.js"],
+      "run_at": "document_start",
+      "all_frames": false
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["fonts/*.woff2"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "commands": {
+    "toggle-ruler": {
+      "suggested_key": { "default": "Alt+R" },
+      "description": "Toggle the reading ruler"
+    },
+    "toggle-enabled": {
+      "suggested_key": { "default": "Alt+Shift+R" },
+      "description": "Toggle Reader Comfort on this page"
+    },
+    "toggle-highlight-quick": {
+      "suggested_key": { "default": "Alt+H" },
+      "description": "Toggle quick-highlight mode (highlight on select)"
+    }
+  }
+}

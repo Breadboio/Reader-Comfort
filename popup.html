@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  :root{
+    --paper:#FAF3E3; --paper-2:#F3EAD5; --panel:#FFFDF6;
+    --ink:#2B2721; --ink-soft:#5C554A; --rule:#DFD3B8; --accent:#2F5FA8;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --paper:#1C2026; --paper-2:#242A32; --panel:#232830;
+      --ink:#E4E8EE; --ink-soft:#A4AEBC; --rule:#3A424D; --accent:#8CB8F0; }
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; width:320px; background:var(--paper); color:var(--ink);
+    font-family:Verdana,'Segoe UI',system-ui,sans-serif; font-size:13px; line-height:1.4;
+  }
+  header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 14px; background:var(--paper-2); border-bottom:2px solid var(--rule);
+  }
+  header h1{margin:0; font-size:14px; font-weight:700}
+  .body{padding:12px 14px; display:flex; flex-direction:column; gap:13px}
+  .row{display:flex; flex-direction:column; gap:6px}
+  .row > .label{
+    font-size:10.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .chips{display:flex; flex-wrap:wrap; gap:6px; align-items:center}
+  button.chip{
+    font:inherit; font-size:12px; font-weight:600;
+    background:var(--panel); color:var(--ink);
+    border:2px solid var(--rule); border-radius:16px;
+    padding:4px 10px; cursor:pointer; line-height:1.2;
+  }
+  button.chip[aria-pressed="true"]{ border-color:var(--ink); background:var(--ink); color:var(--paper); }
+  button.swatch{
+    width:24px; height:24px; border-radius:50%; cursor:pointer;
+    border:2px solid var(--rule); padding:0;
+  }
+  button.swatch[aria-pressed="true"]{ outline:3px solid var(--ink); outline-offset:2px; }
+  .sw-cream{background:#FAF3E3} .sw-blue{background:#E7F0F7} .sw-mint{background:#E8F2EA}
+  .sw-peach{background:#FBEDE5} .sw-dark{background:#1C2026}
+  .toggle{
+    position:relative; width:40px; height:22px; border-radius:22px; border:2px solid var(--rule);
+    background:var(--panel); cursor:pointer; flex:0 0 auto; padding:0;
+  }
+  .toggle::after{
+    content:""; position:absolute; top:1px; left:1px; width:16px; height:16px; border-radius:50%;
+    background:var(--ink-soft); transition:transform .12s, background .12s;
+  }
+  .toggle[aria-pressed="true"]{ border-color:var(--accent); }
+  .toggle[aria-pressed="true"]::after{ transform:translateX(18px); background:var(--accent); }
+  .inline{display:flex; align-items:center; gap:8px; justify-content:space-between}
+  .sizeval{min-width:44px; text-align:center; font-weight:700; font-size:12px}
+  input[type=range]{width:100%}
+  label.check{display:flex; align-items:center; gap:8px; font-size:12px; cursor:pointer}
+  .scope{
+    display:flex; gap:0; border:2px solid var(--rule); border-radius:16px; overflow:hidden;
+  }
+  .scope button{
+    flex:1; font:inherit; font-size:11.5px; font-weight:700; border:0; background:var(--panel);
+    color:var(--ink-soft); padding:5px 6px; cursor:pointer;
+  }
+  .scope button[aria-pressed="true"]{ background:var(--ink); color:var(--paper); }
+  .note{ font-size:11px; color:var(--ink-soft); margin:0; }
+  .linkbtn{
+    background:none; border:0; color:var(--accent); font:inherit; font-size:11.5px;
+    text-decoration:underline; cursor:pointer; padding:0; align-self:flex-start;
+  }
+  footer{ padding:10px 14px; border-top:2px solid var(--rule); font-size:11px; color:var(--ink-soft); }
+  kbd{
+    font-family:ui-monospace,monospace; background:var(--panel); border:1px solid var(--rule);
+    border-radius:4px; padding:0 4px; font-size:10.5px;
+  }
+  .disabled{ opacity:.4; pointer-events:none; }
+  .disabled #hlSection{ opacity:1; pointer-events:auto; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Reader Comfort</h1>
+  <button class="toggle" id="enabled" aria-pressed="true" aria-label="Enable Reader Comfort"></button>
+</header>
+
+<div class="body" id="controls">
+  <div class="row">
+    <div class="scope" role="group" aria-label="Settings scope">
+      <button id="scopeGlobal" aria-pressed="true">All sites</button>
+      <button id="scopeSite" aria-pressed="false">This site only</button>
+    </div>
+    <p class="note" id="scopeNote"></p>
+    <button class="linkbtn" id="resetSite" hidden>Reset this site to defaults</button>
+  </div>
+
+  <div class="row">
+    <span class="label">Page colour</span>
+    <div class="chips" id="tint">
+      <button class="chip" data-tint="off" aria-pressed="true">Off</button>
+      <button class="swatch sw-cream" data-tint="cream" title="Cream" aria-label="Cream"></button>
+      <button class="swatch sw-blue"  data-tint="blue"  title="Blue"  aria-label="Blue"></button>
+      <button class="swatch sw-mint"  data-tint="mint"  title="Mint"  aria-label="Mint"></button>
+      <button class="swatch sw-peach" data-tint="peach" title="Peach" aria-label="Peach"></button>
+      <button class="swatch sw-dark"  data-tint="dark"  title="Dark"  aria-label="Dark"></button>
+    </div>
+  </div>
+
+  <div class="row">
+    <span class="label">Text size</span>
+    <div class="inline">
+      <button class="chip" id="sizeDown">A &minus;</button>
+      <span class="sizeval" id="sizeVal">100%</span>
+      <button class="chip" id="sizeUp">A &plus;</button>
+      <button class="chip" id="sizeReset">Reset</button>
+    </div>
+  </div>
+
+  <div class="row">
+    <span class="label">Line spacing</span>
+    <div class="chips" id="leading">
+      <button class="chip" data-leading="off" aria-pressed="true">Off</button>
+      <button class="chip" data-leading="tight">Tight</button>
+      <button class="chip" data-leading="normal">Normal</button>
+      <button class="chip" data-leading="airy">Airy</button>
+    </div>
+  </div>
+
+  <div class="row">
+    <span class="label">Letter &amp; word spacing</span>
+    <div class="chips" id="spacing">
+      <button class="chip" data-spacing="off" aria-pressed="true">Off</button>
+      <button class="chip" data-spacing="normal">Normal</button>
+      <button class="chip" data-spacing="wide">Wide</button>
+    </div>
+  </div>
+
+  <div class="row">
+    <span class="label">Font</span>
+    <div class="chips" id="font">
+      <button class="chip" data-font="off" aria-pressed="true">Off</button>
+      <button class="chip" data-font="atkinson">Hyperlegible</button>
+      <button class="chip" data-font="lexend">Lexend</button>
+      <button class="chip" data-font="opendyslexic">OpenDyslexic</button>
+      <button class="chip" data-font="system">Verdana</button>
+      <button class="chip" data-font="mono">Mono</button>
+    </div>
+  </div>
+
+  <div class="row">
+    <span class="label">Line width</span>
+    <div class="chips" id="measure">
+      <button class="chip" data-measure="off" aria-pressed="true">Off</button>
+      <button class="chip" data-measure="narrow">Narrow column</button>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="inline">
+      <span class="label" style="margin:0">Reading ruler</span>
+      <button class="toggle" id="ruler" aria-pressed="false" aria-label="Reading ruler"></button>
+    </div>
+    <input type="range" id="rulerHeight" min="40" max="320" step="10" value="130" aria-label="Ruler height">
+  </div>
+
+  <div class="row">
+    <label class="check"><input type="checkbox" id="killItalics"> Show italics as bold instead</label>
+    <label class="check"><input type="checkbox" id="linkUnderline"> Underline all links</label>
+    <label class="check"><input type="checkbox" id="reduceMotion"> Reduce animation &amp; motion</label>
+  </div>
+
+  <div class="row" id="hlSection">
+    <span class="label">Highlighter</span>
+    <div class="chips" id="hlColor">
+      <button class="swatch" data-hlc="yellow" style="background:#ffd600" title="Yellow" aria-label="Yellow"></button>
+      <button class="swatch" data-hlc="green"  style="background:#78e08f" title="Green"  aria-label="Green"></button>
+      <button class="swatch" data-hlc="pink"   style="background:#ff8cc5" title="Pink"   aria-label="Pink"></button>
+      <button class="swatch" data-hlc="blue"   style="background:#82b1ff" title="Blue"   aria-label="Blue"></button>
+    </div>
+    <label class="check"><input type="checkbox" id="hlQuick"> Quick mode &mdash; highlight the moment you select (<kbd>Alt</kbd>+<kbd>H</kbd>)</label>
+    <div class="inline">
+      <span class="note" id="hlCount">No highlights on this page</span>
+      <span style="display:flex; gap:6px">
+        <button class="chip" id="hlCopy">Copy all</button>
+        <button class="chip" id="hlClear">Clear page</button>
+      </span>
+    </div>
+    <p class="note">Not in quick mode: select text, then click a colour in the little bar. Click a highlight to recolour or remove it.</p>
+  </div>
+</div>
+
+<footer>
+  <kbd>Alt</kbd>+<kbd>R</kbd> ruler &nbsp;·&nbsp; <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> on/off
+</footer>
+
+<script src="popup.js"></script>
+</body>
+</html>
