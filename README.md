@@ -12,11 +12,16 @@ applies the reading system from `breadtoasting.com/fortigate-study-guide` to
   (bundled woff2, no network)
 - **Line width** — cap the main column to a comfortable measure
 - **Reading ruler** — a horizontal focus band that follows the pointer
-  (dims the rest of the page)
+  (dims the rest of the page). Toggle it with `Alt+R`, the popup, or a
+  **double-click anywhere on the page** (that last one is an option, on by
+  default; it's ignored on links, buttons, and form fields)
 - **Highlighter** — select text, pick a colour (yellow / green / pink / blue);
   highlights persist per-URL and are re-anchored on reload. Click a highlight
   to recolour or remove it. "Quick mode" (`Alt+H`) highlights the instant you
-  select. Popup has per-page count, **Copy all**, and **Clear page**.
+  select. There's an **on/off toggle** — off, selecting text does nothing
+  special and existing highlights disappear until you switch it back on
+  (`Esc` also dismisses the colour bar). Popup has per-page count, **Copy
+  all**, and **Clear page**.
 - **Draw / annotate** — a full-page freehand layer for arrows, circles,
   scribbles, whatever. Toggle draw mode (`Alt+D` or the popup), a small
   toolbar appears on the page (colour, thin/medium/thick, pen/eraser,

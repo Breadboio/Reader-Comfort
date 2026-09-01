@@ -18,7 +18,7 @@
     blue:   "rgba(130,177,255,.45)"
   };
 
-  var prefs = { color: "yellow", quick: false };
+  var prefs = { color: "yellow", quick: false, enabled: true };
   var highlights = [];         // [{id, exact, prefix, suffix, color}]
   var restored = {};           // id -> true once wrapped into the DOM
   var pendingRange = null;
@@ -38,6 +38,8 @@
       "mark.rc-hl{color:inherit !important;background:transparent;border-radius:2px;" +
         "padding:.02em 0;box-decoration-break:clone;-webkit-box-decoration-break:clone;cursor:pointer}" +
       marks +
+      /* highlighter turned off: marks stay in the DOM but disappear */
+      "html[data-rc-hl-off] mark.rc-hl{background:transparent !important;padding:0;cursor:auto}" +
       "#rc-hl-bar{position:absolute;z-index:2147483647;display:flex;gap:5px;align-items:center;" +
         "padding:5px 6px;background:#fff;border:1px solid rgba(0,0,0,.18);border-radius:9px;" +
         "box-shadow:0 6px 20px rgba(0,0,0,.24);font:12px/1 system-ui,-apple-system,Segoe UI,sans-serif}" +
@@ -212,6 +214,7 @@
       if (store[PREFS_KEY]) prefs = Object.assign(prefs, store[PREFS_KEY]);
       highlights = Array.isArray(store[KEY]) ? store[KEY] : [];
       injectStyle();
+      applyEnabled();
       restoreAll();
       scheduleRetries();
     });
@@ -350,8 +353,14 @@
     try { chrome.storage.local.remove(KEY); } catch (e) {}
   }
 
+  function applyEnabled() {
+    var el = document.documentElement;
+    if (prefs.enabled) el.removeAttribute("data-rc-hl-off");
+    else el.setAttribute("data-rc-hl-off", "");
+  }
+
   function savePrefs() {
-    var o = {}; o[PREFS_KEY] = { color: prefs.color, quick: prefs.quick };
+    var o = {}; o[PREFS_KEY] = { color: prefs.color, quick: prefs.quick, enabled: prefs.enabled };
     try { chrome.storage.local.set(o); } catch (e) {}
   }
 
@@ -369,6 +378,7 @@
   }
 
   document.addEventListener("mouseup", function (e) {
+    if (!prefs.enabled) return;
     if (bar && bar.contains(e.target)) return;
     setTimeout(function () {
       var sel = window.getSelection();
@@ -386,6 +396,7 @@
   }, true);
 
   document.addEventListener("click", function (e) {
+    if (!prefs.enabled) return;
     var mark = e.target.closest && e.target.closest("mark.rc-hl");
     var sel = window.getSelection();
     if (mark && (!sel || sel.isCollapsed)) {
@@ -396,6 +407,9 @@
 
   document.addEventListener("mousedown", function (e) {
     if (bar && !bar.hidden && !bar.contains(e.target)) hideBar();
+  }, true);
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && bar && !bar.hidden) hideBar();
   }, true);
   window.addEventListener("scroll", hideBar, true);
 
@@ -409,6 +423,7 @@
         restoredCount: Object.keys(restored).length,
         color: prefs.color,
         quick: prefs.quick,
+        enabled: prefs.enabled,
         colors: COLORS
       });
       return true;
@@ -416,6 +431,7 @@
     if (msg.type === "rc:hlSet") {
       if (typeof msg.color === "string") prefs.color = msg.color;
       if (typeof msg.quick === "boolean") prefs.quick = msg.quick;
+      if (typeof msg.enabled === "boolean") { prefs.enabled = msg.enabled; applyEnabled(); if (!prefs.enabled) hideBar(); }
       savePrefs();
     }
     if (msg.type === "rc:hlCopyAll") {
@@ -434,6 +450,7 @@
   chrome.storage.onChanged.addListener(function (changes, area) {
     if (area === "local" && changes[PREFS_KEY] && changes[PREFS_KEY].newValue) {
       prefs = Object.assign(prefs, changes[PREFS_KEY].newValue);
+      applyEnabled();
     }
   });
 
