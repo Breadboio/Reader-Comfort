@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Reader Comfort",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Reading tools for any web page: page tint, text size and spacing, accessible fonts, a reading ruler, a persistent highlighter (with an optional right-click dictionary), freehand annotations, and sticky notes.",
   "browser_specific_settings": {
     "gecko": {

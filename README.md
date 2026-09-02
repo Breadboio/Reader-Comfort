@@ -13,7 +13,7 @@ applies the reading system from `breadtoasting.com/fortigate-study-guide` to
 - **Line width** — cap the main column to a comfortable measure
 - **Reading ruler** — a horizontal focus band that follows the pointer
   (dims the rest of the page). Toggle it with `Alt+R`, the popup, or a
-  **double-click anywhere on the page** (that last one is an option, on by
+  **triple-click anywhere on the page** (that last one is an option, on by
   default; it's ignored on links, buttons, and form fields)
 - **Highlighter** — select text, pick a colour (yellow / green / pink / blue);
   highlights persist per-URL and are re-anchored on reload. Click a highlight

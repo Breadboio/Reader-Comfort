@@ -272,13 +272,16 @@
     });
   }
 
-  /* ---------- double-click toggles the ruler ---------- */
+  /* ---------- triple-click the page toggles the ruler ----------
+   * `rulerDblclick` is the (legacy-named) setting flag; the gesture is a
+   * triple-click — click.detail === 3 on the third of a fast click burst. */
 
-  var IGNORE_DBLCLICK = "input,textarea,select,button,a,[contenteditable=''],[contenteditable='true']," +
+  var IGNORE_CLICK = "input,textarea,select,button,a,[contenteditable=''],[contenteditable='true']," +
     "[role='button'],[role='textbox'],[role='link'],[role='menuitem'],video,audio";
-  document.addEventListener("dblclick", function (e) {
+  document.addEventListener("click", function (e) {
+    if (e.detail !== 3) return;
     if (!current.enabled || !current.rulerDblclick) return;
-    if (e.target && e.target.closest && e.target.closest(IGNORE_DBLCLICK)) return;
+    if (e.target && e.target.closest && e.target.closest(IGNORE_CLICK)) return;
     current.ruler = !current.ruler;
     apply(current);                 // instant, don't wait for the storage round-trip
     persistPatch({ ruler: current.ruler });
