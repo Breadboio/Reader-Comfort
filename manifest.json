@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Reader Comfort",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Reading tools for any web page: page tint, text size and spacing, accessible fonts, a reading ruler, a persistent highlighter (with an optional right-click dictionary), freehand annotations, and sticky notes.",
   "browser_specific_settings": {
     "gecko": {
@@ -9,7 +9,7 @@
       "strict_min_version": "115.0"
     }
   },
-  "permissions": ["storage", "activeTab", "clipboardWrite"],
+  "permissions": ["storage", "activeTab", "clipboardWrite", "scripting"],
   "host_permissions": ["<all_urls>", "https://api.dictionaryapi.dev/*"],
   "background": {
     "service_worker": "background.js",
@@ -32,6 +32,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
+      "css": ["reader.css"],
       "js": ["content.js", "highlighter.js", "annotate.js", "notes.js"],
       "run_at": "document_start",
       "all_frames": false
@@ -40,7 +41,7 @@
   "web_accessible_resources": [
     {
       "resources": ["fonts/*.woff2"],
-      "matches": ["<all_urls>"]
+      "matches": ["<all_urls>", "file:///*"]
     }
   ],
   "commands": {

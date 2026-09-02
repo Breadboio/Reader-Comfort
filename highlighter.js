@@ -22,51 +22,12 @@
   var highlights = [];         // [{id, exact, prefix, suffix, color}]
   var restored = {};           // id -> true once wrapped into the DOM
   var pendingRange = null;
-  var bar = null, styleEl = null, dictEl = null;
+  var bar = null, dictEl = null;
   var dictCache = {};          // word -> rendered HTML (session only)
   var observer = null, stopObserverAt = 0;
   var DICT_API = "https://api.dictionaryapi.dev/api/v2/entries/en/";
 
-  /* ---------- styling ---------- */
-
-  function injectStyle() {
-    if (styleEl && styleEl.isConnected) return;
-    styleEl = document.createElement("style");
-    styleEl.id = "rc-hl-style";
-    var marks = Object.keys(COLORS).map(function (c) {
-      return "mark.rc-hl[data-c='" + c + "']{background-color:" + COLORS[c] + " !important}";
-    }).join("");
-    styleEl.textContent =
-      "mark.rc-hl{color:inherit !important;background:transparent;border-radius:2px;" +
-        "padding:.02em 0;box-decoration-break:clone;-webkit-box-decoration-break:clone;cursor:pointer}" +
-      marks +
-      /* highlighter turned off: marks stay in the DOM but disappear */
-      "html[data-rc-hl-off] mark.rc-hl{background:transparent !important;padding:0;cursor:auto}" +
-      "#rc-hl-bar{position:absolute;z-index:2147483647;display:flex;gap:5px;align-items:center;" +
-        "padding:5px 6px;background:#fff;border:1px solid rgba(0,0,0,.18);border-radius:9px;" +
-        "box-shadow:0 6px 20px rgba(0,0,0,.24);font:12px/1 system-ui,-apple-system,Segoe UI,sans-serif}" +
-      "#rc-hl-bar[hidden]{display:none!important}" +
-      "#rc-hl-bar button{margin:0;padding:0;width:19px;height:19px;border-radius:50%;" +
-        "border:2px solid rgba(0,0,0,.18);cursor:pointer;background:#ccc}" +
-      "#rc-hl-bar button[data-c='yellow']{background:" + COLORS.yellow + "}" +
-      "#rc-hl-bar button[data-c='green']{background:" + COLORS.green + "}" +
-      "#rc-hl-bar button[data-c='pink']{background:" + COLORS.pink + "}" +
-      "#rc-hl-bar button[data-c='blue']{background:" + COLORS.blue + "}" +
-      "#rc-hl-bar button[aria-pressed='true']{outline:2px solid #333;outline-offset:1px}" +
-      "#rc-hl-bar .rc-hl-act{width:auto;height:auto;border-radius:6px;padding:3px 8px;" +
-        "border:1px solid rgba(0,0,0,.18);background:#f1f1f1;color:#222;font-weight:600}" +
-      /* dictionary card */
-      "#rc-hl-dict{position:absolute;z-index:2147483647;max-width:320px;padding:10px 12px;" +
-        "background:#fff;color:#1c1c1c;border:1px solid rgba(0,0,0,.18);border-radius:9px;" +
-        "box-shadow:0 6px 22px rgba(0,0,0,.26);font:13px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}" +
-      "#rc-hl-dict[hidden]{display:none!important}" +
-      "#rc-hl-dict .rc-d-word{font-weight:700;font-size:14px}" +
-      "#rc-hl-dict .rc-d-ph{color:#666;margin-left:6px;font-size:12px}" +
-      "#rc-hl-dict .rc-d-pos{font-style:italic;color:#555}" +
-      "#rc-hl-dict p{margin:6px 0 0}" +
-      "#rc-hl-dict .rc-d-src{margin-top:8px;font-size:11px;color:#888}";
-    (document.head || document.documentElement).appendChild(styleEl);
-  }
+  /* styling lives in reader.css (manifest-injected, CSP-proof) */
 
   /* ---------- DOM text scanning ---------- */
 
@@ -225,7 +186,6 @@
       store = store || {};
       if (store[PREFS_KEY]) prefs = Object.assign(prefs, store[PREFS_KEY]);
       highlights = Array.isArray(store[KEY]) ? store[KEY] : [];
-      injectStyle();
       applyEnabled();
       restoreAll();
       scheduleRetries();

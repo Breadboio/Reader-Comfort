@@ -19,6 +19,28 @@
   var controls = $("controls");
   var scopeNote = $("scopeNote");
 
+  /* ---------- run-on-all-sites permission (mainly a Firefox thing) ---------- */
+
+  (function permGate() {
+    if (!chrome.permissions || !chrome.permissions.contains) return;
+    var ALL = { origins: ["<all_urls>"] };
+    var refresh = function () {
+      chrome.permissions.contains(ALL, function (granted) {
+        $("permBanner").hidden = !!granted;
+      });
+    };
+    $("permGrant").addEventListener("click", function () {
+      chrome.permissions.request(ALL, function (granted) {
+        void chrome.runtime.lastError;
+        if (granted) {
+          $("permBanner").hidden = true;
+          if (tabId != null) chrome.tabs.reload(tabId);
+        }
+      });
+    });
+    refresh();
+  })();
+
   /* ---------- boot ---------- */
 
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {

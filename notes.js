@@ -17,41 +17,11 @@
 
   var prefs = { color: "yellow" };
   var notes = [];              // [{id,x,y,w,h,text,color,collapsed}]
-  var root = null, styleEl = null;
+  var root = null;
   var drag = null, topZ = 10;
   var saveT = null;
 
-  /* ---------- styling ---------- */
-
-  function injectStyle() {
-    if (styleEl && styleEl.isConnected) return;
-    styleEl = document.createElement("style");
-    styleEl.id = "rc-note-style";
-    var colorRules = Object.keys(COLORS).map(function (c) {
-      var v = COLORS[c];
-      return ".rc-note[data-c='" + c + "']{background:" + v.bg + ";color:" + v.ink + "}" +
-        ".rc-note[data-c='" + c + "'] .rc-note-bar{background:" + v.bar + "}" +
-        ".rc-note[data-c='" + c + "'] .rc-note-body{color:" + v.ink + "}";
-    }).join("");
-    styleEl.textContent =
-      "#rc-notes-root{position:absolute;top:0;left:0;width:0;height:0;z-index:2147483645}" +
-      ".rc-note{position:absolute;min-width:150px;min-height:70px;border-radius:6px;" +
-        "box-shadow:0 6px 22px rgba(0,0,0,.28);overflow:hidden;resize:both;" +
-        "font:13px/1.45 system-ui,-apple-system,Segoe UI,sans-serif;display:flex;flex-direction:column}" +
-      ".rc-note[data-collapsed='true']{height:auto!important;min-height:0;resize:none}" +
-      ".rc-note[data-collapsed='true'] .rc-note-body{display:none}" +
-      ".rc-note-bar{flex:0 0 auto;height:22px;display:flex;align-items:center;gap:4px;" +
-        "padding:0 4px;cursor:move;user-select:none}" +
-      ".rc-note-bar button{margin:0;width:18px;height:16px;padding:0;border:0;border-radius:3px;" +
-        "background:rgba(0,0,0,.08);cursor:pointer;font:11px/1 system-ui,sans-serif;color:inherit}" +
-      ".rc-note-bar .rc-note-spacer{flex:1}" +
-      ".rc-note-dot{width:12px;height:12px;border-radius:50%;border:1px solid rgba(0,0,0,.25);" +
-        "cursor:pointer;flex:0 0 auto}" +
-      ".rc-note-body{flex:1 1 auto;border:0;outline:0;background:transparent;resize:none;" +
-        "padding:6px 8px;font:inherit;width:100%}" +
-      colorRules;
-    (document.head || document.documentElement).appendChild(styleEl);
-  }
+  /* styling lives in reader.css (manifest-injected, CSP-proof) */
 
   /* ---------- root ---------- */
 
@@ -221,7 +191,6 @@
       store = store || {};
       if (store[PREFS_KEY]) prefs = Object.assign(prefs, store[PREFS_KEY]);
       notes = Array.isArray(store[KEY]) ? store[KEY] : [];
-      injectStyle();
       ensureRoot();
       notes.forEach(build);
     });
