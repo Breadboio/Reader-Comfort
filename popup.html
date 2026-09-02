@@ -75,6 +75,14 @@
     border-radius:4px; padding:0 4px; font-size:10.5px;
   }
   .disabled{ opacity:.4; pointer-events:none; }
+  #permBanner{ padding:12px 14px; background:#8a2c1a; color:#fff; }
+  #permBanner[hidden]{ display:none; }
+  @media (prefers-color-scheme: dark){ #permBanner{ background:#b23a22; } }
+  #permBanner p{ margin:0 0 8px; font-size:12.5px; line-height:1.4; }
+  #permBanner button{
+    font:inherit; font-size:12.5px; font-weight:700; cursor:pointer;
+    background:#fff; color:#8a2c1a; border:0; border-radius:14px; padding:6px 12px;
+  }
   .disabled #hlSection, .disabled #drSection, .disabled #ntSection{ opacity:1; pointer-events:auto; }
 </style>
 </head>
@@ -83,6 +91,12 @@
   <h1>Reader Comfort</h1>
   <button class="toggle" id="enabled" aria-pressed="true" aria-label="Enable Reader Comfort"></button>
 </header>
+
+<div id="permBanner" hidden>
+  <p>Reader Comfort needs permission to run on every site. Without it, the tools
+  only work on some pages.</p>
+  <button id="permGrant">Allow on all sites</button>
+</div>
 
 <div class="body" id="controls">
   <div class="row">

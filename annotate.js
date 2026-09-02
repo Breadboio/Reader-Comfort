@@ -23,39 +23,11 @@
 
   var prefs = { drawMode: false, color: "red", width: "m", tool: "pen" };
   var strokes = [];              // [{id, color, width, points:[[x,y],...]}]
-  var layer = null, bar = null, styleEl = null;
+  var layer = null, bar = null;
   var drawing = false, erasing = false, curPath = null, curPoints = null;
   var resizeObs = null;
 
-  /* ---------- styling ---------- */
-
-  function injectStyle() {
-    if (styleEl && styleEl.isConnected) return;
-    styleEl = document.createElement("style");
-    styleEl.id = "rc-draw-style";
-    styleEl.textContent =
-      "#rc-draw-layer{position:absolute;top:0;left:0;pointer-events:none;" +
-        "z-index:2147483644;overflow:visible}" +
-      "#rc-draw-layer[data-active='true']{pointer-events:auto;cursor:crosshair}" +
-      ".rc-draw-path{fill:none;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}" +
-      "#rc-draw-layer[data-active='true'][data-tool='eraser'] .rc-draw-path{pointer-events:stroke}" +
-      "#rc-draw-bar{position:fixed;bottom:16px;right:16px;z-index:2147483647;display:flex;" +
-        "flex-direction:column;gap:6px;padding:8px;background:#fff;border:1px solid rgba(0,0,0,.18);" +
-        "border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.24);font:12px/1 system-ui,sans-serif}" +
-      "#rc-draw-bar[hidden]{display:none!important}" +
-      "#rc-draw-bar .rc-draw-row{display:flex;gap:5px;align-items:center}" +
-      "#rc-draw-bar button{margin:0;padding:0;cursor:pointer;background:#eee;border:2px solid transparent;" +
-        "border-radius:6px}" +
-      "#rc-draw-bar .rc-draw-c{width:20px;height:20px;border-radius:50%;border:2px solid rgba(0,0,0,.15)}" +
-      "#rc-draw-bar .rc-draw-c[aria-pressed='true']{outline:2px solid #333;outline-offset:1px}" +
-      "#rc-draw-bar .rc-draw-w{width:26px;height:26px;font-weight:700;color:#222}" +
-      "#rc-draw-bar .rc-draw-w[aria-pressed='true']{background:#333;color:#fff}" +
-      "#rc-draw-bar .rc-draw-t{width:26px;height:26px;font-size:14px}" +
-      "#rc-draw-bar .rc-draw-t[aria-pressed='true']{background:#333;color:#fff}" +
-      "#rc-draw-bar .rc-draw-act{height:24px;padding:0 8px;border-radius:6px;font-weight:600;color:#222}" +
-      "#rc-draw-bar .rc-draw-x{align-self:flex-end;background:none;font-size:14px;color:#666;width:20px;height:20px}";
-    (document.head || document.documentElement).appendChild(styleEl);
-  }
+  /* styling lives in reader.css (manifest-injected, CSP-proof) */
 
   /* ---------- layer ---------- */
 
@@ -207,7 +179,6 @@
       store = store || {};
       if (store[PREFS_KEY]) prefs = Object.assign(prefs, store[PREFS_KEY]);
       strokes = Array.isArray(store[KEY]) ? store[KEY] : [];
-      injectStyle();
       ensureLayer();
       strokes.forEach(renderStroke);
     });

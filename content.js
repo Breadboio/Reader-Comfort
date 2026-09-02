@@ -57,36 +57,17 @@
   var FONT_SCOPE = TEXT_SEL.split(",").map(function (t) { return t + TEXT_NOT; }).join(",");
 
   var current = Object.assign({}, DEFAULTS);
-  var baseStyleEl = null, dynStyleEl = null, ruler = null;
-  var mouseWired = false;
+  var dynStyleEl = null, ruler = null;
+  var mouseWired = false, lastPushedCss = null;
 
-  /* ---------- style plumbing ---------- */
-
-  function fontFace(name, file, weight) {
-    return "@font-face{font-family:'" + name + "';font-style:normal;font-weight:" + weight +
-      ";font-display:swap;src:url(" + chrome.runtime.getURL("fonts/" + file) + ") format('woff2')}";
-  }
-
-  function ensureBaseStyle() {
-    if (baseStyleEl && baseStyleEl.isConnected) return;
-    baseStyleEl = document.createElement("style");
-    baseStyleEl.id = "rc-base";
-    baseStyleEl.textContent = [
-      fontFace("RC Atkinson Hyperlegible", "atkinson-400.woff2", 400),
-      fontFace("RC Atkinson Hyperlegible", "atkinson-700.woff2", 700),
-      fontFace("RC Lexend", "lexend.woff2", 400),
-      fontFace("RC Lexend", "lexend.woff2", 600),
-      fontFace("RC Lexend", "lexend.woff2", 700),
-      fontFace("RC OpenDyslexic", "opendyslexic-400.woff2", 400),
-      fontFace("RC OpenDyslexic", "opendyslexic-700.woff2", 700),
-      /* reading ruler */
-      "#rc-ruler{position:fixed;left:0;right:0;z-index:2147483646;pointer-events:none;" +
-        "display:none;box-shadow:0 0 0 100vmax var(--rc-dim,rgba(0,0,0,.32));" +
-        "border-top:2px solid var(--rc-memo,#8A6100);border-bottom:2px solid var(--rc-memo,#8A6100)}",
-      "html[data-rc-ruler='on'] #rc-ruler{display:block}"
-    ].join("\n");
-    (document.head || root).appendChild(baseStyleEl);
-  }
+  /* ---------- style plumbing ----------
+   * Static CSS (fonts, ruler, all the tool chrome) ships in reader.css, which
+   * the manifest injects — that path is exempt from the page's CSP. The
+   * per-setting rules below are volatile, so we push them two ways:
+   *   1. a <style id="rc-dynamic"> element (instant, but Firefox blocks it on
+   *      strict-CSP pages), and
+   *   2. chrome.scripting.insertCSS from the background (survives CSP).
+   */
 
   function buildDynamicCss(s) {
     var css = [];
@@ -163,29 +144,47 @@
 
   function applyAttrs(s) {
     var on = s.enabled;
-    root.toggleAttribute("data-rc-off", !on);
+    setAttr("data-rc-off", on ? null : "");
     setAttr("data-rc-tint", on && s.tint !== "off" ? s.tint : null);
     setAttr("data-rc-measure", on && s.measure !== "off" ? s.measure : null);
     setAttr("data-rc-ruler", on && s.ruler ? "on" : null);
   }
 
+  /* only touch the DOM when the value actually changes, so our own writes
+     don't wake the MutationObserver below */
   function setAttr(name, val) {
-    if (val == null) root.removeAttribute(name);
-    else root.setAttribute(name, val);
+    if (val == null) {
+      if (root.hasAttribute(name)) root.removeAttribute(name);
+    } else if (root.getAttribute(name) !== val) {
+      root.setAttribute(name, val);
+    }
   }
 
   function apply(s) {
     current = s;
-    ensureBaseStyle();
+    var css = s.enabled ? buildDynamicCss(s) : "";
+    applyAttrs(s);
+    pushCss(css);
+    ensureRuler();
+    if (s.enabled && s.ruler) wireMouse();
+  }
+
+  function pushCss(css) {
+    if (css === lastPushedCss) return;
+    lastPushedCss = css;
+    // fast path: a <style> element (blocked on strict-CSP Firefox pages)
     if (!dynStyleEl || !dynStyleEl.isConnected) {
       dynStyleEl = document.createElement("style");
       dynStyleEl.id = "rc-dynamic";
       (document.head || root).appendChild(dynStyleEl);
     }
-    applyAttrs(s);
-    dynStyleEl.textContent = s.enabled ? buildDynamicCss(s) : "";
-    ensureRuler();
-    if (s.enabled && s.ruler) wireMouse();
+    dynStyleEl.textContent = css;
+    // CSP-proof path: let the background inject it via chrome.scripting
+    try {
+      chrome.runtime.sendMessage({ type: "rc:css", css: css }, function () {
+        void chrome.runtime.lastError;
+      });
+    } catch (e) {}
   }
 
   /* ---------- ruler ---------- */
@@ -280,10 +279,35 @@
   document.addEventListener("dblclick", function (e) {
     if (!current.enabled || !current.rulerDblclick) return;
     if (e.target && e.target.closest && e.target.closest(IGNORE_DBLCLICK)) return;
-    persistPatch({ ruler: !current.ruler });
+    current.ruler = !current.ruler;
+    apply(current);                 // instant, don't wait for the storage round-trip
+    persistPatch({ ruler: current.ruler });
     var sel = window.getSelection();
     if (sel) sel.removeAllRanges();
   });
+
+  /* ---------- resilience: some SPAs wipe <html> attributes / our nodes ---------- */
+
+  var reassertT = null;
+  function reassert() {
+    clearTimeout(reassertT);
+    reassertT = setTimeout(function () {
+      applyAttrs(current);
+      if (dynStyleEl && !dynStyleEl.isConnected) { dynStyleEl = null; }
+      if (current.enabled) { pushCss(current.enabled ? buildDynamicCss(current) : ""); }
+      ensureRuler();
+    }, 200);
+  }
+
+  var attrObs = new MutationObserver(function (muts) {
+    for (var i = 0; i < muts.length; i++) {
+      var name = muts[i].attributeName || "";
+      if (name.indexOf("data-rc-") === 0) { reassert(); return; }
+    }
+  });
+  try {
+    attrObs.observe(root, { attributes: true, attributeFilter: ["data-rc-tint", "data-rc-measure", "data-rc-ruler", "data-rc-off"] });
+  } catch (e) {}
 
   /* ---------- boot ---------- */
 

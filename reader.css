@@ -1,0 +1,136 @@
+/* Reader Comfort — static styles, injected by the browser via the manifest
+ * (content_scripts[].css). Browser-injected CSS is NOT subject to the page's
+ * Content-Security-Policy, unlike a <style> element a content script appends —
+ * which Firefox blocks on strict-CSP sites. The per-setting dynamic rules
+ * (tint colour, text size, spacing…) are pushed separately through
+ * chrome.scripting.insertCSS from the background for the same reason.
+ */
+
+/* ---------- bundled fonts ---------- */
+@font-face { font-family: "RC Atkinson Hyperlegible"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/atkinson-400.woff2") format("woff2"); }
+@font-face { font-family: "RC Atkinson Hyperlegible"; font-style: normal; font-weight: 700; font-display: swap; src: url("fonts/atkinson-700.woff2") format("woff2"); }
+@font-face { font-family: "RC Lexend"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/lexend.woff2") format("woff2"); }
+@font-face { font-family: "RC Lexend"; font-style: normal; font-weight: 600; font-display: swap; src: url("fonts/lexend.woff2") format("woff2"); }
+@font-face { font-family: "RC Lexend"; font-style: normal; font-weight: 700; font-display: swap; src: url("fonts/lexend.woff2") format("woff2"); }
+@font-face { font-family: "RC OpenDyslexic"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/opendyslexic-400.woff2") format("woff2"); }
+@font-face { font-family: "RC OpenDyslexic"; font-style: normal; font-weight: 700; font-display: swap; src: url("fonts/opendyslexic-700.woff2") format("woff2"); }
+
+/* ---------- reading ruler ---------- */
+#rc-ruler {
+  position: fixed; left: 0; right: 0; z-index: 2147483646; pointer-events: none;
+  display: none;
+  box-shadow: 0 0 0 100vmax var(--rc-dim, rgba(0,0,0,.32));
+  border-top: 2px solid var(--rc-memo, #8A6100);
+  border-bottom: 2px solid var(--rc-memo, #8A6100);
+}
+html[data-rc-ruler="on"] #rc-ruler { display: block; }
+
+/* ---------- highlighter ---------- */
+mark.rc-hl {
+  color: inherit !important; background: transparent; border-radius: 2px;
+  padding: .02em 0; box-decoration-break: clone; -webkit-box-decoration-break: clone;
+  cursor: pointer;
+}
+mark.rc-hl[data-c="yellow"] { background-color: rgba(255,214,0,.42) !important; }
+mark.rc-hl[data-c="green"]  { background-color: rgba(120,224,143,.45) !important; }
+mark.rc-hl[data-c="pink"]   { background-color: rgba(255,140,197,.45) !important; }
+mark.rc-hl[data-c="blue"]   { background-color: rgba(130,177,255,.45) !important; }
+html[data-rc-hl-off] mark.rc-hl { background: transparent !important; padding: 0; cursor: auto; }
+
+#rc-hl-bar {
+  position: absolute; z-index: 2147483647; display: flex; gap: 5px; align-items: center;
+  padding: 5px 6px; background: #fff; border: 1px solid rgba(0,0,0,.18); border-radius: 9px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.24); font: 12px/1 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+#rc-hl-bar[hidden] { display: none !important; }
+#rc-hl-bar button {
+  margin: 0; padding: 0; width: 19px; height: 19px; border-radius: 50%;
+  border: 2px solid rgba(0,0,0,.18); cursor: pointer; background: #ccc;
+}
+#rc-hl-bar button[data-c="yellow"] { background: rgba(255,214,0,.42); }
+#rc-hl-bar button[data-c="green"]  { background: rgba(120,224,143,.45); }
+#rc-hl-bar button[data-c="pink"]   { background: rgba(255,140,197,.45); }
+#rc-hl-bar button[data-c="blue"]   { background: rgba(130,177,255,.45); }
+#rc-hl-bar button[aria-pressed="true"] { outline: 2px solid #333; outline-offset: 1px; }
+#rc-hl-bar .rc-hl-act {
+  width: auto; height: auto; border-radius: 6px; padding: 3px 8px;
+  border: 1px solid rgba(0,0,0,.18); background: #f1f1f1; color: #222; font-weight: 600;
+}
+
+#rc-hl-dict {
+  position: absolute; z-index: 2147483647; max-width: 320px; padding: 10px 12px;
+  background: #fff; color: #1c1c1c; border: 1px solid rgba(0,0,0,.18); border-radius: 9px;
+  box-shadow: 0 6px 22px rgba(0,0,0,.26); font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+#rc-hl-dict[hidden] { display: none !important; }
+#rc-hl-dict .rc-d-word { font-weight: 700; font-size: 14px; }
+#rc-hl-dict .rc-d-ph { color: #666; margin-left: 6px; font-size: 12px; }
+#rc-hl-dict .rc-d-pos { font-style: italic; color: #555; }
+#rc-hl-dict p { margin: 6px 0 0; }
+#rc-hl-dict .rc-d-src { margin-top: 8px; font-size: 11px; color: #888; }
+
+/* ---------- draw layer ---------- */
+#rc-draw-layer {
+  position: absolute; top: 0; left: 0; pointer-events: none;
+  z-index: 2147483644; overflow: visible;
+}
+#rc-draw-layer[data-active="true"] { pointer-events: auto; cursor: crosshair; }
+.rc-draw-path { fill: none; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+#rc-draw-layer[data-active="true"][data-tool="eraser"] .rc-draw-path { pointer-events: stroke; }
+
+#rc-draw-bar {
+  position: fixed; bottom: 16px; right: 16px; z-index: 2147483647; display: flex;
+  flex-direction: column; gap: 6px; padding: 8px; background: #fff;
+  border: 1px solid rgba(0,0,0,.18); border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.24); font: 12px/1 system-ui, sans-serif;
+}
+#rc-draw-bar[hidden] { display: none !important; }
+#rc-draw-bar .rc-draw-row { display: flex; gap: 5px; align-items: center; }
+#rc-draw-bar button {
+  margin: 0; padding: 0; cursor: pointer; background: #eee;
+  border: 2px solid transparent; border-radius: 6px;
+}
+#rc-draw-bar .rc-draw-c { width: 20px; height: 20px; border-radius: 50%; border: 2px solid rgba(0,0,0,.15); }
+#rc-draw-bar .rc-draw-c[aria-pressed="true"] { outline: 2px solid #333; outline-offset: 1px; }
+#rc-draw-bar .rc-draw-w { width: 26px; height: 26px; font-weight: 700; color: #222; }
+#rc-draw-bar .rc-draw-w[aria-pressed="true"] { background: #333; color: #fff; }
+#rc-draw-bar .rc-draw-t { width: 26px; height: 26px; font-size: 14px; }
+#rc-draw-bar .rc-draw-t[aria-pressed="true"] { background: #333; color: #fff; }
+#rc-draw-bar .rc-draw-act { height: 24px; padding: 0 8px; border-radius: 6px; font-weight: 600; color: #222; }
+#rc-draw-bar .rc-draw-x { align-self: flex-end; background: none; font-size: 14px; color: #666; width: 20px; height: 20px; }
+
+/* ---------- sticky notes ---------- */
+#rc-notes-root { position: absolute; top: 0; left: 0; width: 0; height: 0; z-index: 2147483645; }
+.rc-note {
+  position: absolute; min-width: 150px; min-height: 70px; border-radius: 6px;
+  box-shadow: 0 6px 22px rgba(0,0,0,.28); overflow: hidden; resize: both;
+  font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+  display: flex; flex-direction: column;
+}
+.rc-note[data-collapsed="true"] { height: auto !important; min-height: 0; resize: none; }
+.rc-note[data-collapsed="true"] .rc-note-body { display: none; }
+.rc-note-bar {
+  flex: 0 0 auto; height: 22px; display: flex; align-items: center; gap: 4px;
+  padding: 0 4px; cursor: move; user-select: none;
+}
+.rc-note-bar button {
+  margin: 0; width: 18px; height: 16px; padding: 0; border: 0; border-radius: 3px;
+  background: rgba(0,0,0,.08); cursor: pointer; font: 11px/1 system-ui, sans-serif; color: inherit;
+}
+.rc-note-bar .rc-note-spacer { flex: 1; }
+.rc-note-dot {
+  width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0,0,0,.25);
+  cursor: pointer; flex: 0 0 auto;
+}
+.rc-note-body {
+  flex: 1 1 auto; border: 0; outline: 0; background: transparent; resize: none;
+  padding: 6px 8px; font: inherit; width: 100%;
+}
+.rc-note[data-c="yellow"] { background: #fff4b8; color: #3a3410; }
+.rc-note[data-c="yellow"] .rc-note-bar { background: #f4e08a; }
+.rc-note[data-c="pink"] { background: #ffd9e8; color: #3a1020; }
+.rc-note[data-c="pink"] .rc-note-bar { background: #f4b7cf; }
+.rc-note[data-c="blue"] { background: #d6e8ff; color: #0e2540; }
+.rc-note[data-c="blue"] .rc-note-bar { background: #b3d1f7; }
+.rc-note[data-c="green"] { background: #d6f5df; color: #0f3320; }
+.rc-note[data-c="green"] .rc-note-bar { background: #b0e6c2; }
