@@ -31,6 +31,15 @@ identifier, no cookies (`credentials: "omit"`). Definitions fetched during a
 visit are cached in memory for that page only. This is the extension's only
 network request, and it never happens while the setting is off.
 
+## Firefox data collection declaration
+
+Firefox add-ons must now declare what data they collect in the manifest
+(`browser_specific_settings.gecko.data_collection_permissions`), shown to you
+at install time and on the add-on's Firefox listing. This extension declares
+**required: none** and **optional: websiteContent** — nothing is required to
+install it, and the only optional category is the single highlighted word the
+dictionary feature sends when you turn that feature on (see above).
+
 ## Permissions
 
 - **`storage`** — to save the preferences and page markup described above.

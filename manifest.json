@@ -1,12 +1,16 @@
 {
   "manifest_version": 3,
   "name": "Reader Comfort",
-  "version": "1.5.2",
+  "version": "1.6.0",
   "description": "Page tint, text size/spacing, accessible fonts, a reading ruler, highlighter, annotations, and sticky notes for any website.",
   "browser_specific_settings": {
     "gecko": {
       "id": "reader-comfort@breadtoasting.com",
-      "strict_min_version": "115.0"
+      "strict_min_version": "115.0",
+      "data_collection_permissions": {
+        "required": ["none"],
+        "optional": ["websiteContent"]
+      }
     }
   },
   "permissions": ["storage", "activeTab", "clipboardWrite", "scripting"],

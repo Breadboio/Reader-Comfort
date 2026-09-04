@@ -75,6 +75,13 @@
     border-radius:4px; padding:0 4px; font-size:10.5px;
   }
   .disabled{ opacity:.4; pointer-events:none; }
+  svg.ic{ width:14px; height:14px; flex:0 0 auto; vertical-align:-3px; margin-right:5px; }
+  .row > .label{ display:flex; align-items:center; }
+  label.check svg.ic{ margin-left:6px; margin-right:6px; }
+  .scope button svg.ic{ margin-right:4px; }
+  footer svg.ic{ margin-right:5px; vertical-align:-2px; }
+  .brand{ display:flex; align-items:center; gap:8px; }
+  .brand img{ width:20px; height:20px; border-radius:5px; display:block; }
   #permBanner{ padding:12px 14px; background:#8a2c1a; color:#fff; }
   #permBanner[hidden]{ display:none; }
   @media (prefers-color-scheme: dark){ #permBanner{ background:#b23a22; } }
@@ -88,7 +95,7 @@
 </head>
 <body>
 <header>
-  <h1>Reader Comfort</h1>
+  <span class="brand"><img src="icons/icon32.png" alt=""><h1>Reader Comfort</h1></span>
   <button class="toggle" id="enabled" aria-pressed="true" aria-label="Enable Reader Comfort"></button>
 </header>
 
@@ -101,15 +108,15 @@
 <div class="body" id="controls">
   <div class="row">
     <div class="scope" role="group" aria-label="Settings scope">
-      <button id="scopeGlobal" aria-pressed="true">All sites</button>
-      <button id="scopeSite" aria-pressed="false">This site only</button>
+      <button id="scopeGlobal" aria-pressed="true"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="10" opacity=".35"></circle><path d="M2 10.9h20v2.2H2z"></path><path d="M12 2c2.6 2.9 4 6.2 4 10s-1.4 7.1-4 10c-2.6-2.9-4-6.2-4-10s1.4-7.1 4-10z"></path></svg>All sites</button>
+      <button id="scopeSite" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" opacity=".35"></path><path d="M2 6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3H2z"></path></svg>This site only</button>
     </div>
     <p class="note" id="scopeNote"></p>
     <button class="linkbtn" id="resetSite" hidden>Reset this site to defaults</button>
   </div>
 
   <div class="row">
-    <span class="label">Page colour</span>
+    <span class="label"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 2h10a3 3 0 0 1 3 3v14a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V5a3 3 0 0 1 3-3z" opacity=".35"></path><path d="M4 12h16v7a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3z"></path></svg>Page colour</span>
     <div class="chips" id="tint">
       <button class="chip" data-tint="off" aria-pressed="true">Off</button>
       <button class="swatch sw-cream" data-tint="cream" title="Cream" aria-label="Cream"></button>
@@ -121,7 +128,7 @@
   </div>
 
   <div class="row">
-    <span class="label">Text size</span>
+    <span class="label"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><text x="1" y="19" font-family="Inter, sans-serif" font-weight="700" font-size="11" opacity=".35">A</text><text x="9" y="19" font-family="Inter, sans-serif" font-weight="700" font-size="17">A</text></svg>Text size</span>
     <div class="inline">
       <button class="chip" id="sizeDown">A &minus;</button>
       <span class="sizeval" id="sizeVal">100%</span>
@@ -131,7 +138,7 @@
   </div>
 
   <div class="row">
-    <span class="label">Line spacing</span>
+    <span class="label"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 4h13v2.4H9zM9 10.8h13v2.4H9zM9 17.6h13v2.4H9z"></path><g opacity=".35"><path d="M4.2 2.6l3 4h-6zM4.2 21.4l3-4h-6z"></path><path d="M3.4 6h1.6v12H3.4z"></path></g></svg>Line spacing</span>
     <div class="chips" id="leading">
       <button class="chip" data-leading="off" aria-pressed="true">Off</button>
       <button class="chip" data-leading="tight">Tight</button>
@@ -141,7 +148,7 @@
   </div>
 
   <div class="row">
-    <span class="label">Letter &amp; word spacing</span>
+    <span class="label"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 3h2.2v18H2zM19.8 3H22v18h-2.2z" opacity=".35"></path><path d="M9 8.5l-3.5 3.5L9 15.5zM15 8.5l3.5 3.5L15 15.5zM8 11h8v2H8z"></path></svg>Letter &amp; word spacing</span>
     <div class="chips" id="spacing">
       <button class="chip" data-spacing="off" aria-pressed="true">Off</button>
       <button class="chip" data-spacing="normal">Normal</button>
@@ -150,7 +157,7 @@
   </div>
 
   <div class="row">
-    <span class="label">Font</span>
+    <span class="label"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><text x="0.5" y="18.5" font-family="Inter, sans-serif" font-weight="700" font-size="15">A</text><text x="11.5" y="18.5" font-family="Inter, sans-serif" font-weight="400" font-size="15" opacity=".35">a</text></svg>Font</span>
     <div class="chips" id="font">
       <button class="chip" data-font="off" aria-pressed="true">Off</button>
       <button class="chip" data-font="atkinson">Hyperlegible</button>
@@ -162,7 +169,7 @@
   </div>
 
   <div class="row">
-    <span class="label">Line width</span>
+    <span class="label"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 2h16a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" opacity=".35"></path><path d="M8 6h8v2H8zM8 11h8v2H8zM8 16h5v2H8z"></path></svg>Line width</span>
     <div class="chips" id="measure">
       <button class="chip" data-measure="off" aria-pressed="true">Off</button>
       <button class="chip" data-measure="narrow">Narrow column</button>
@@ -171,7 +178,7 @@
 
   <div class="row">
     <div class="inline">
-      <span class="label" style="margin:0">Reading ruler</span>
+      <span class="label" style="margin:0"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 4h16v2.4H4zM4 17.6h12v2.4H4z" opacity=".35"></path><rect x="1.5" y="10.4" width="21" height="3.4" rx="1.7"></rect></svg>Reading ruler</span>
       <button class="toggle" id="ruler" aria-pressed="false" aria-label="Reading ruler"></button>
     </div>
     <input type="range" id="rulerHeight" min="40" max="320" step="10" value="130" aria-label="Ruler height">
@@ -179,14 +186,14 @@
   </div>
 
   <div class="row">
-    <label class="check"><input type="checkbox" id="killItalics"> Show italics as bold instead</label>
-    <label class="check"><input type="checkbox" id="linkUnderline"> Underline all links</label>
-    <label class="check"><input type="checkbox" id="reduceMotion"> Reduce animation &amp; motion</label>
+    <label class="check"><input type="checkbox" id="killItalics"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><text x="5" y="19" font-family="Inter, sans-serif" font-weight="700" font-size="18">B</text></svg>Show italics as bold instead</label>
+    <label class="check"><input type="checkbox" id="linkUnderline"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 2h2.4v9a3.6 3.6 0 0 0 7.2 0V2H18v9a6 6 0 0 1-12 0z"></path><path d="M4 19.8h16V22H4z" opacity=".35"></path></svg>Underline all links</label>
+    <label class="check"><input type="checkbox" id="reduceMotion"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="10" opacity=".35"></circle><path d="M8.6 7.5h2.2v9H8.6zM13.2 7.5h2.2v9h-2.2z"></path></svg>Reduce animation &amp; motion</label>
   </div>
 
   <div class="row" id="hlSection">
     <div class="inline">
-      <span class="label" style="margin:0">Highlighter</span>
+      <span class="label" style="margin:0"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 3h14v2.2H5zM5 19h14v2.2H5z" opacity=".35"></path><path d="M3 8.5h15l3 3.5-3 3.5H3z"></path></svg>Highlighter</span>
       <button class="toggle" id="hlEnabled" aria-pressed="true" aria-label="Highlighter on/off"></button>
     </div>
     <div class="chips" id="hlColor">
@@ -196,13 +203,13 @@
       <button class="swatch" data-hlc="blue"   style="background:#82b1ff" title="Blue"   aria-label="Blue"></button>
     </div>
     <label class="check"><input type="checkbox" id="hlQuick"> Quick mode &mdash; highlight the moment you select (<kbd>Alt</kbd>+<kbd>H</kbd>)</label>
-    <label class="check"><input type="checkbox" id="hlDict"> Right-click a highlighted word for its definition</label>
+    <label class="check"><input type="checkbox" id="hlDict"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 4.5A1.5 1.5 0 0 1 4.5 3H11v18H4.5A1.5 1.5 0 0 1 3 19.5z" opacity=".35"></path><path d="M13 3h6.5A1.5 1.5 0 0 1 21 4.5v15a1.5 1.5 0 0 1-1.5 1.5H13z"></path><path d="M11 3h2v18h-2z"></path></svg>Right-click a highlighted word for its definition</label>
     <p class="note" id="hlDictNote" hidden>Looking up a word sends just that word to <b>api.dictionaryapi.dev</b>. This is the only time the extension talks to the network; it's off unless you check this.</p>
     <div class="inline">
       <span class="note" id="hlCount">No highlights on this page</span>
       <span style="display:flex; gap:6px">
-        <button class="chip" id="hlCopy">Copy all</button>
-        <button class="chip" id="hlClear">Clear page</button>
+        <button class="chip" id="hlCopy"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 2h8a2 2 0 0 1 2 2v2H8a2 2 0 0 0-2 2v8H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" opacity=".35"></path><path d="M10 8h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z"></path></svg><span class="lbl">Copy all</span></button>
+        <button class="chip" id="hlClear"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 7h14l-1.1 13.2A2 2 0 0 1 15.9 22H8.1a2 2 0 0 1-2-1.8z"></path><path d="M3 4.6h18v2.2H3zM9.4 2h5.2v2.6H9.4z" opacity=".35"></path></svg><span class="lbl">Clear page</span></button>
       </span>
     </div>
     <p class="note">Turn it off and selecting text does nothing special &mdash; existing highlights disappear until you turn it back on. In quick mode, selecting text highlights it right away.</p>
@@ -210,7 +217,7 @@
 
   <div class="row" id="drSection">
     <div class="inline">
-      <span class="label" style="margin:0">Draw / annotate</span>
+      <span class="label" style="margin:0"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.2 2.6l4.2 4.2-2.6 2.6-4.2-4.2zM13.3 6.5l4.2 4.2L7.6 20.4l-5 1 1-5z"></path></svg>Draw / annotate</span>
       <button class="toggle" id="drMode" aria-pressed="false" aria-label="Draw mode"></button>
     </div>
     <div class="chips" id="drColor">
@@ -226,21 +233,21 @@
       <button class="chip" data-drw="l">Thick</button>
     </div>
     <div class="chips" id="drTool">
-      <button class="chip" data-drt="pen" aria-pressed="true">Pen</button>
-      <button class="chip" data-drt="eraser">Eraser</button>
+      <button class="chip" data-drt="pen" aria-pressed="true"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.2 2.6l4.2 4.2-2.6 2.6-4.2-4.2zM13.3 6.5l4.2 4.2L7.6 20.4l-5 1 1-5z"></path></svg>Pen</button>
+      <button class="chip" data-drt="eraser"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 20.8h12V23H9z" opacity=".35"></path><path d="M13.8 2.9l7.3 7.3a2 2 0 0 1 0 2.9l-5.6 5.6H7.9l-5-5a2 2 0 0 1 0-2.9l8-7.9a2 2 0 0 1 2.9 0z"></path></svg>Eraser</button>
     </div>
     <div class="inline">
       <span class="note" id="drCount">No annotations on this page</span>
       <span style="display:flex; gap:6px">
-        <button class="chip" id="drUndo">Undo</button>
-        <button class="chip" id="drClear">Clear page</button>
+        <button class="chip" id="drUndo"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.6 5.2L2 10.8l5.6 5.6z"></path><path d="M6 9.6h6.6a5.6 5.6 0 0 1 0 11.2H9.9v-2.7h2.7a2.9 2.9 0 0 0 0-5.8H6z"></path></svg><span class="lbl">Undo</span></button>
+        <button class="chip" id="drClear"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 7h14l-1.1 13.2A2 2 0 0 1 15.9 22H8.1a2 2 0 0 1-2-1.8z"></path><path d="M3 4.6h18v2.2H3zM9.4 2h5.2v2.6H9.4z" opacity=".35"></path></svg><span class="lbl">Clear page</span></button>
       </span>
     </div>
     <p class="note">Turn on draw mode (<kbd>Alt</kbd>+<kbd>D</kbd>), then drag anywhere on the page to draw. A small toolbar appears on the page itself while it's on. Turn it off to use the page normally again &mdash; ink stays put.</p>
   </div>
 
   <div class="row" id="ntSection">
-    <span class="label">Sticky notes</span>
+    <span class="label"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 3h10l6 6v12H4z"></path><path d="M14 3l6 6h-6z" opacity=".35"></path></svg>Sticky notes</span>
     <div class="chips" id="ntColor">
       <button class="swatch" data-ntc="yellow" style="background:#fff4b8" title="Yellow" aria-label="Yellow"></button>
       <button class="swatch" data-ntc="pink"   style="background:#ffd9e8" title="Pink"   aria-label="Pink"></button>
@@ -250,8 +257,8 @@
     <div class="inline">
       <span class="note" id="ntCount">No notes on this page</span>
       <span style="display:flex; gap:6px">
-        <button class="chip" id="ntAdd">Add note</button>
-        <button class="chip" id="ntClear">Clear page</button>
+        <button class="chip" id="ntAdd"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 3h10l6 6v12H4z"></path><path d="M14 3l6 6h-6z" opacity=".35"></path></svg><span class="lbl">Add note</span></button>
+        <button class="chip" id="ntClear"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 7h14l-1.1 13.2A2 2 0 0 1 15.9 22H8.1a2 2 0 0 1-2-1.8z"></path><path d="M3 4.6h18v2.2H3zM9.4 2h5.2v2.6H9.4z" opacity=".35"></path></svg><span class="lbl">Clear page</span></button>
       </span>
     </div>
     <p class="note">Drop a note (<kbd>Alt</kbd>+<kbd>N</kbd>), drag it by its bar, drag the corner to resize, click the dot to recolour. Notes stay on the page and come back on reload.</p>
@@ -259,7 +266,7 @@
 </div>
 
 <footer>
-  <kbd>Alt</kbd>+<kbd>R</kbd> ruler &nbsp;·&nbsp; <kbd>Alt</kbd>+<kbd>H</kbd> highlight
+  <svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 6h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" opacity=".35"></path><path d="M5.5 9.5h2v2h-2zM9 9.5h2v2H9zM12.5 9.5h2v2h-2zM16 9.5h2.5v2H16zM7 13h10v2H7z"></path></svg><kbd>Alt</kbd>+<kbd>R</kbd> ruler &nbsp;·&nbsp; <kbd>Alt</kbd>+<kbd>H</kbd> highlight
   &nbsp;·&nbsp; <kbd>Alt</kbd>+<kbd>D</kbd> draw &nbsp;·&nbsp; <kbd>Alt</kbd>+<kbd>N</kbd> note
 </footer>
 
