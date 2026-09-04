@@ -149,9 +149,10 @@
   }
 
   function flash(btn, text) {
-    var old = btn.textContent;
-    btn.textContent = text;
-    setTimeout(function () { btn.textContent = old; }, 1200);
+    var lbl = btn.querySelector(".lbl") || btn;
+    var old = lbl.textContent;
+    lbl.textContent = text;
+    setTimeout(function () { lbl.textContent = old; }, 1200);
   }
 
   /* ---------- annotate (draw) ---------- */

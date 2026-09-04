@@ -258,7 +258,10 @@
     var act = document.createElement("button");
     act.type = "button";
     act.className = "rc-hl-act";
-    act.textContent = mode === "mark" ? "Remove" : "Copy";
+    var actIcon = mode === "mark"
+      ? '<svg class="rc-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 7h14l-1.1 13.2A2 2 0 0 1 15.9 22H8.1a2 2 0 0 1-2-1.8z"></path><path d="M3 4.6h18v2.2H3zM9.4 2h5.2v2.6H9.4z" opacity=".35"></path></svg>'
+      : '<svg class="rc-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 2h8a2 2 0 0 1 2 2v2H8a2 2 0 0 0-2 2v8H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" opacity=".35"></path><path d="M10 8h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z"></path></svg>';
+    act.innerHTML = actIcon + (mode === "mark" ? "Remove" : "Copy");
     act.addEventListener("mousedown", function (e) { e.preventDefault(); });
     act.addEventListener("click", function () {
       if (mode === "mark") { removeHighlight(b._markId); }

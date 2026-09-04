@@ -198,10 +198,14 @@
     if (bar && bar.isConnected) return;
     bar = document.createElement("div");
     bar.id = "rc-draw-bar";
+    var ICON_PEN = '<svg class="rc-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.2 2.6l4.2 4.2-2.6 2.6-4.2-4.2zM13.3 6.5l4.2 4.2L7.6 20.4l-5 1 1-5z"></path></svg>';
+    var ICON_ERASER = '<svg class="rc-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 20.8h12V23H9z" opacity=".35"></path><path d="M13.8 2.9l7.3 7.3a2 2 0 0 1 0 2.9l-5.6 5.6H7.9l-5-5a2 2 0 0 1 0-2.9l8-7.9a2 2 0 0 1 2.9 0z"></path></svg>';
+    var ICON_UNDO = '<svg class="rc-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.6 5.2L2 10.8l5.6 5.6z"></path><path d="M6 9.6h6.6a5.6 5.6 0 0 1 0 11.2H9.9v-2.7h2.7a2.9 2.9 0 0 0 0-5.8H6z"></path></svg>';
+    var ICON_CLEAR = '<svg class="rc-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 7h14l-1.1 13.2A2 2 0 0 1 15.9 22H8.1a2 2 0 0 1-2-1.8z"></path><path d="M3 4.6h18v2.2H3zM9.4 2h5.2v2.6H9.4z" opacity=".35"></path></svg>';
     bar.innerHTML =
       '<div class="rc-draw-row" id="rcdTool">' +
-        '<button class="rc-draw-t" data-t="pen" title="Pen">✏️</button>' +
-        '<button class="rc-draw-t" data-t="eraser" title="Eraser">✖</button>' +
+        '<button class="rc-draw-t" data-t="pen" title="Pen">' + ICON_PEN + '</button>' +
+        '<button class="rc-draw-t" data-t="eraser" title="Eraser">' + ICON_ERASER + '</button>' +
       "</div>" +
       '<div class="rc-draw-row" id="rcdColor"></div>' +
       '<div class="rc-draw-row" id="rcdWidth">' +
@@ -209,8 +213,8 @@
         '<button class="rc-draw-w" data-w="m">M</button>' +
         '<button class="rc-draw-w" data-w="l">L</button>' +
       "</div>" +
-      '<div class="rc-draw-row"><button class="rc-draw-act" id="rcdUndo">Undo</button>' +
-        '<button class="rc-draw-act" id="rcdClear">Clear</button></div>' +
+      '<div class="rc-draw-row"><button class="rc-draw-act" id="rcdUndo">' + ICON_UNDO + 'Undo</button>' +
+        '<button class="rc-draw-act" id="rcdClear">' + ICON_CLEAR + 'Clear</button></div>' +
       '<span class="note" id="rcdCount" style="font-size:11px;color:#666"></span>' +
       '<button class="rc-draw-x" id="rcdExit" title="Exit draw mode">✕</button>';
     var colorRow = bar.querySelector("#rcdColor");
