@@ -46,8 +46,18 @@
 
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     var tab = tabs && tabs[0];
+    // A PDF gets its own offer before the http-only gate below, since Chrome's
+    // PDF viewer is a plugin the content script can never run in — and file://
+    // PDFs are worth offering too.
+    initPdf(tab);
     if (!tab || !tab.id || !/^https?:/.test(tab.url || "")) {
-      degrade("Reader Comfort only works on normal web pages.");
+      degrade(isPdfUrl(tab && tab.url)
+        ? "Chrome's PDF viewer is closed to extensions — use the button above."
+        : "Reader Comfort only works on normal web pages.");
+      return;
+    }
+    if (isPdfUrl(tab.url)) {
+      degrade("Chrome's PDF viewer is closed to extensions — use the button above.");
       return;
     }
     tabId = tab.id;
@@ -264,6 +274,28 @@
   }
   function paintNtCount(count) {
     $("ntCount").textContent = count ? (count + (count === 1 ? " note" : " notes")) : "No notes on this page";
+  }
+
+  /* ---------- PDFs ---------- */
+
+  function isPdfUrl(url) {
+    if (!url) return false;
+    // strip query/hash before testing the extension
+    var bare = String(url).split("#")[0].split("?")[0];
+    return /\.pdf$/i.test(bare);
+  }
+
+  function initPdf(tab) {
+    if (!tab || !isPdfUrl(tab.url)) return;
+    var section = $("pdfSection");
+    section.hidden = false;
+    $("pdfOpen").addEventListener("click", function () {
+      chrome.tabs.create({
+        url: chrome.runtime.getURL("pdf/viewer.html") +
+          "?file=" + encodeURIComponent(tab.url)
+      });
+      window.close();
+    });
   }
 
   /* ---------- export: one self-contained .html anyone can open ---------- */

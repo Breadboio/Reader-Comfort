@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PDF — Reader Comfort</title>
+<link rel="stylesheet" href="../reader.css">
+<link rel="stylesheet" href="viewer.css">
+</head>
+<body>
+
+<div id="rcp-bar">
+  <span id="rcp-title">Loading…</span>
+  <span id="rcp-count"></span>
+  <button type="button" id="rcp-mode" aria-pressed="false" title="Reflow the text so fonts, size and spacing apply">Reading view</button>
+  <button type="button" id="rcp-out" title="Zoom out">&minus;</button>
+  <button type="button" id="rcp-in" title="Zoom in">&plus;</button>
+  <button type="button" id="rcp-open" title="Open the original PDF">Original</button>
+</div>
+
+<div id="rcp-status">Loading the PDF…</div>
+<div id="rcp-pages" hidden></div>
+<div id="rcp-reader" hidden><div class="rcp-doc" id="rcp-doc"></div></div>
+
+<script src="viewer.js" type="module"></script>
+<!-- the reading tools, loaded exactly as they are on a normal page -->
+<script src="../content.js"></script>
+<script src="../highlighter.js"></script>
+<script src="../annotate.js"></script>
+<script src="../notes.js"></script>
+</body>
+</html>
