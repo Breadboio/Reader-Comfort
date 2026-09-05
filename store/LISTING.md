@@ -4,7 +4,7 @@
 Reader Comfort
 
 ## Summary (132 chars max)
-Make any web page easier to read: tint, dyslexia-friendly fonts, spacing, a reading ruler, plus a highlighter, drawing, and sticky notes.
+Make any page or PDF easier to read: tint, dyslexia-friendly fonts, spacing, a ruler, plus highlighting, drawing and sticky notes.
 
 ## Category
 Accessibility  (secondary: Productivity / Tools)
@@ -34,6 +34,23 @@ MARK UP WHAT YOU READ
 • Sticky notes — drop a resizable note anywhere and it stays put
 
 Everything you mark is saved locally per page and restored on reload.
+
+PDFs
+Chrome's built-in PDF viewer is closed to extensions, so the tools normally go
+dead on exactly the documents that need them most — worksheets, handouts,
+papers. Open a PDF and Reader Comfort offers to reopen it in its own viewer,
+where everything works. It has two modes:
+• Page view — the PDF as it looks, and you can still select and highlight it
+• Reading view — the text pulled out and reflowed as ordinary paragraphs, so
+  font, size, spacing and line width finally apply. A fixed PDF layout can't
+  do that; this is the difference between a document a struggling reader can
+  read and one they can't.
+
+SHARE WHAT YOU MARKED UP
+One button saves the page's highlights, notes and drawing as a single
+self-contained .html file — your quotes with the text around them, your notes,
+and your ink. Send it to anyone. They don't need this extension, or even a
+network connection: the file loads nothing and reports nothing.
 
 DICTIONARY (optional)
 Turn it on and right-clicking a highlighted word shows its definition. That one
@@ -77,6 +94,11 @@ clipboardWrite
 
 remote code
   None. All code is contained in the package. No external scripts are loaded.
+  The PDF viewer bundles Mozilla's PDF.js (pdfjs-dist 5.6.205, unmodified,
+  in pdf/). Automated scanners flag eval-like constructs inside that vendored
+  bundle; the viewer initialises it with isEvalSupported:false, so those code
+  paths are never taken. The upstream source is at
+  https://www.npmjs.com/package/pdfjs-dist/v/5.6.205 for byte comparison.
 
 data usage disclosures (check on the form)
   ☑ Does NOT sell or transfer user data to third parties
@@ -89,11 +111,16 @@ data usage disclosures (check on the form)
   provide the definition the user asked for, not collected by the developer, not
   sold, not shared beyond that API call.
 
-## Screenshots (store wants 1280x800 or 640x400, PNG)
-store/screenshots/1-reading-comfort.png   — tint + font + narrow column
-store/screenshots/2-highlighter.png       — three colour highlights
-store/screenshots/3-annotate.png          — freehand drawing + on-page toolbar
-store/screenshots/4-sticky-notes.png      — sticky notes (with highlights + ink)
+## Screenshots (store wants 1280x800 or 640x400, PNG) — all 1280x800
+store/screenshots/1-reading-comfort.png   — cream tint, Hyperlegible, airy spacing, narrow column
+store/screenshots/2-highlighter.png       — three colour highlights on an article
+store/screenshots/3-notes-and-ink.png     — sticky note + circled passage + highlights together
+store/screenshots/4-pdf-reading-view.png  — a PDF reflowed into OpenDyslexic (the standout one)
+store/screenshots/5-the-panel.png         — the popup, captioned
+
+Regenerate them with the scripts under the scratch dir used in development:
+they drive a real Chromium with the extension loaded, so they always show the
+current UI rather than a mockup.
 
 ## Small promo tile (440x280) — optional but recommended
 Not generated. Make one from icon128 on a cream background, or skip (only
