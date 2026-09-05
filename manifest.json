@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Reader Comfort",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "Page tint, text size/spacing, accessible fonts, a reading ruler, highlighter, annotations, and sticky notes for any website.",
   "browser_specific_settings": {
     "gecko": {
