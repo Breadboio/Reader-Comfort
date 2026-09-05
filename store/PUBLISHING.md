@@ -18,6 +18,18 @@ The source `manifest.json` carries keys for both engines; `build.py` splits it
 
 ## Chrome Web Store
 
+**Everything that can be prepared ahead of time is done** — package builds
+clean, listing copy is written and within the field limits, and all five
+screenshots are 1280x800 and current. What's left needs a human with the
+Google account:
+
+- [ ] Register as a developer and pay the one-time **$5 USD** fee
+- [ ] Upload `dist/reader-comfort-chrome-<version>.zip`
+- [ ] Paste the listing fields from `store/LISTING.md`
+- [ ] Upload the five PNGs from `store/screenshots/`
+- [ ] Fill the Privacy tab (text below)
+- [ ] Submit
+
 ### One-time setup
 1. Go to <https://chromewebstore.google.com/devconsole> and sign in with the
    Google account that should own the listing.
@@ -49,6 +61,10 @@ The source `manifest.json` carries keys for both engines; `build.py` splits it
 ### Expect
 - Review may ask why `<all_urls>` is needed — the justification text already
   answers it (the tools must run on any page the user reads).
+- Review may flag **eval inside `pdf/pdf.worker.min.mjs`**. That is stock
+  Mozilla PDF.js, vendored unmodified; the viewer initialises it with
+  `isEvalSupported: false`. `store/LISTING.md` has the wording and the upstream
+  link for byte comparison.
 - If they push back, the fallback is `activeTab` + `optional_host_permissions`,
   but that makes the extension only activate after a click on every site, which
   hurts the reading-tools experience. Try the `<all_urls>` justification first.
