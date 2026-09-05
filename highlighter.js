@@ -490,6 +490,40 @@
   }, true);
   window.addEventListener("scroll", function () { hideBar(); hideDict(); }, true);
 
+  /* ---------- export ----------
+   * Stored order is creation order, which reads as a jumble. The re-anchored
+   * <mark>s are in the DOM in document order, so walk those instead and fall
+   * back to the stored record for anything that didn't re-anchor this visit.
+   */
+
+  function exportItems() {
+    var byId = {};
+    highlights.forEach(function (h) { byId[h.id] = h; });
+
+    var out = [], seen = {};
+    Array.prototype.forEach.call(document.querySelectorAll("mark.rc-hl"), function (m) {
+      var id = m.dataset.id;
+      if (!id || seen[id]) return;
+      seen[id] = true;
+      var h = byId[id];
+      if (!h) return;
+      out.push({
+        exact: h.exact, prefix: h.prefix, suffix: h.suffix,
+        color: h.color, anchored: true
+      });
+    });
+    // highlights that couldn't be re-anchored — still worth exporting, just
+    // without a place in the reading order
+    highlights.forEach(function (h) {
+      if (seen[h.id]) return;
+      out.push({
+        exact: h.exact, prefix: h.prefix, suffix: h.suffix,
+        color: h.color, anchored: false
+      });
+    });
+    return out;
+  }
+
   /* ---------- messaging ---------- */
 
   chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
@@ -515,6 +549,10 @@
     }
     if (msg.type === "rc:hlCopyAll") {
       sendResponse({ text: highlights.map(function (h) { return h.exact; }).join("\n\n") });
+      return true;
+    }
+    if (msg.type === "rc:hlExport") {
+      sendResponse({ items: exportItems() });
       return true;
     }
     if (msg.type === "rc:hlClearPage") {

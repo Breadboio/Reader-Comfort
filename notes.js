@@ -212,6 +212,17 @@
     if (msg.type === "rc:notesSet") {
       if (typeof msg.color === "string") { prefs.color = msg.color; savePrefs(); }
     }
+    if (msg.type === "rc:notesExport") {
+      // stored in creation order; sort top-to-bottom so an export reads the
+      // way the page does
+      var items = notes.slice().sort(function (a, b) {
+        return (a.y - b.y) || (a.x - b.x);
+      }).map(function (n) {
+        return { text: n.text || "", color: n.color, x: n.x, y: n.y };
+      }).filter(function (n) { return n.text.trim() !== ""; });
+      sendResponse({ items: items });
+      return true;
+    }
     if (msg.type === "rc:notesClearPage") { clearPage(); }
     if (msg.type === "rc:command" && msg.command === "add-note") { addNote(); }
   });
