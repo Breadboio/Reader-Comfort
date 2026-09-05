@@ -9,6 +9,7 @@
   };
 
   var tabId = null;
+  var currentTab = null;      // kept for the export's page title / url
   var origin = null;
   var scope = "global";          // "global" | "site"
   var hasOverride = false;
@@ -50,6 +51,7 @@
       return;
     }
     tabId = tab.id;
+    currentTab = tab;
     chrome.tabs.sendMessage(tabId, { type: "rc:getState" }, function (resp) {
       if (chrome.runtime.lastError || !resp) {
         degrade("Reload this tab to use Reader Comfort here.");
@@ -66,6 +68,7 @@
     initHighlighter();
     initAnnotate();
     initNotes();
+    initExport();
   });
 
   function degrade(msg) {
@@ -261,6 +264,177 @@
   }
   function paintNtCount(count) {
     $("ntCount").textContent = count ? (count + (count === 1 ? " note" : " notes")) : "No notes on this page";
+  }
+
+  /* ---------- export: one self-contained .html anyone can open ---------- */
+
+  function initExport() {
+    $("exHtml").addEventListener("click", function () {
+      var btn = this;
+      gather(function (data) {
+        if (!data.highlights.length && !data.notes.length && !data.strokes.length) {
+          flash(btn, "Nothing yet");
+          return;
+        }
+        download(fileName(data.title), buildHtml(data));
+        flash(btn, "Saved");
+      });
+    });
+  }
+
+  function gather(done) {
+    var data = {
+      title: (currentTab && currentTab.title) || "Untitled page",
+      url: (currentTab && currentTab.url) || "",
+      date: new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }),
+      highlights: [], notes: [], strokes: []
+    };
+    hlSend({ type: "rc:hlExport" }, function (h) {
+      if (h && h.items) data.highlights = h.items;
+      hlSend({ type: "rc:notesExport" }, function (n) {
+        if (n && n.items) data.notes = n.items;
+        hlSend({ type: "rc:drawExport" }, function (dr) {
+          if (dr && dr.strokes) data.strokes = dr.strokes;
+          done(data);
+        });
+      });
+    });
+  }
+
+  function esc(str) {
+    return String(str == null ? "" : str)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function fileName(title) {
+    var slug = String(title).toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "page";
+    return "highlights-" + slug + ".html";
+  }
+
+  /* Ink lives in document coordinates, which mean nothing without the page
+     underneath. Crop to the drawing's own bounding box so it reads as a sketch
+     rather than a speck on a page-sized canvas. */
+  function inkSvg(strokes) {
+    var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    strokes.forEach(function (st) {
+      st.points.forEach(function (p) {
+        if (p[0] < minX) minX = p[0];
+        if (p[0] > maxX) maxX = p[0];
+        if (p[1] < minY) minY = p[1];
+        if (p[1] > maxY) maxY = p[1];
+      });
+    });
+    if (!isFinite(minX)) return "";
+    var pad = 16;
+    minX -= pad; minY -= pad; maxX += pad; maxY += pad;
+    var w = Math.max(maxX - minX, 1), h = Math.max(maxY - minY, 1);
+    var paths = strokes.map(function (st) {
+      var dAttr = st.points.map(function (p, i) {
+        return (i ? "L" : "M") + Math.round(p[0]) + " " + Math.round(p[1]);
+      }).join(" ");
+      return '<path d="' + dAttr + '" fill="none" stroke="' + esc(st.color) +
+        '" stroke-width="' + st.width + '" stroke-linecap="round" stroke-linejoin="round"/>';
+    }).join("");
+    return '<svg viewBox="' + Math.round(minX) + " " + Math.round(minY) + " " +
+      Math.round(w) + " " + Math.round(h) + '" xmlns="http://www.w3.org/2000/svg" ' +
+      'role="img" aria-label="Freehand drawing made over the page">' + paths + "</svg>";
+  }
+
+  function buildHtml(d) {
+    // opaque equivalents of the on-page translucent highlight colours
+    var HL = { yellow: "#ffe680", green: "#b6efc4", pink: "#ffc4de", blue: "#c2d9ff" };
+    var NT = {
+      yellow: { bg: "#fff4b8", bar: "#f4e08a" }, pink: { bg: "#ffd9e8", bar: "#f4b7cf" },
+      blue: { bg: "#d6e8ff", bar: "#b3d1f7" }, green: { bg: "#d6f5df", bar: "#b0e6c2" }
+    };
+    var p = [];
+
+    p.push('<!doctype html><html lang="en"><head><meta charset="utf-8">');
+    p.push('<meta name="viewport" content="width=device-width,initial-scale=1">');
+    p.push("<title>" + esc(d.title) + " — highlights</title><style>");
+    p.push(
+      ":root{--paper:#faf7f0;--card:#fff;--ink:#26221c;--soft:#6b6355;--rule:#e3dbc9}" +
+      "@media(prefers-color-scheme:dark){:root{--paper:#1b1f24;--card:#232830;--ink:#e6e9ee;--soft:#a0a8b4;--rule:#39404a}}" +
+      "*{box-sizing:border-box}" +
+      "body{margin:0;background:var(--paper);color:var(--ink);padding:32px 20px 64px;" +
+      "font:16px/1.65 Georgia,'Iowan Old Style',serif}" +
+      ".wrap{max-width:720px;margin:0 auto}" +
+      "header{border-bottom:3px solid var(--rule);padding-bottom:18px;margin-bottom:28px}" +
+      "h1{font-size:26px;line-height:1.25;margin:0 0 8px}" +
+      "h2{font:600 12px/1 system-ui,sans-serif;letter-spacing:.09em;text-transform:uppercase;" +
+      "color:var(--soft);margin:38px 0 14px}" +
+      ".meta{font:13px/1.5 system-ui,sans-serif;color:var(--soft);margin:0}" +
+      "figure{margin:0 0 18px;background:var(--card);border:1px solid var(--rule);" +
+      "border-radius:10px;padding:16px 18px}" +
+      "blockquote{margin:0;font-size:17px}" +
+      "mark{padding:1px 2px;border-radius:2px;color:#26221c}" +
+      ".ctx{color:var(--soft);font-size:15px}" +
+      ".gone{font:12px/1.4 system-ui,sans-serif;color:var(--soft);margin:10px 0 0;font-style:italic}" +
+      ".stickynote{border-radius:10px;padding:14px 16px;margin:0 0 14px;color:#2a2510;" +
+      "font:15px/1.6 system-ui,sans-serif;white-space:pre-wrap;border:1px solid rgba(0,0,0,.08)}" +
+      ".ink{background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:14px}" +
+      ".ink svg{display:block;width:100%;height:auto;max-height:70vh}" +
+      "footer{margin-top:46px;padding-top:16px;border-top:1px solid var(--rule);" +
+      "font:12px/1.6 system-ui,sans-serif;color:var(--soft)}"
+    );
+    p.push("</style></head><body><div class=wrap>");
+
+    p.push("<header><h1>" + esc(d.title) + "</h1>");
+    p.push('<p class="meta">Highlights and notes saved ' + esc(d.date));
+    if (d.url) p.push(' &middot; <a href="' + esc(d.url) + '">view the original page</a>');
+    p.push("</p></header>");
+
+    if (d.highlights.length) {
+      p.push("<h2>" + d.highlights.length +
+        (d.highlights.length === 1 ? " highlight" : " highlights") + "</h2>");
+      d.highlights.forEach(function (h) {
+        p.push("<figure><blockquote>");
+        if (h.prefix) p.push('<span class="ctx">' + esc(h.prefix) + "</span>");
+        p.push('<mark style="background:' + (HL[h.color] || HL.yellow) + '">' +
+          esc(h.exact) + "</mark>");
+        if (h.suffix) p.push('<span class="ctx">' + esc(h.suffix) + "</span>");
+        p.push("</blockquote>");
+        if (h.anchored === false) {
+          p.push('<p class="gone">This passage was not on the page when the file ' +
+            "was saved — the page may have changed since it was highlighted.</p>");
+        }
+        p.push("</figure>");
+      });
+    }
+
+    if (d.notes.length) {
+      p.push("<h2>" + d.notes.length + (d.notes.length === 1 ? " note" : " notes") + "</h2>");
+      d.notes.forEach(function (n) {
+        var c = NT[n.color] || NT.yellow;
+        p.push('<div class="stickynote" style="background:' + c.bg +
+          ";border-left:6px solid " + c.bar + '">' + esc(n.text) + "</div>");
+      });
+    }
+
+    if (d.strokes.length) {
+      p.push("<h2>Drawing</h2>");
+      p.push('<div class="ink">' + inkSvg(d.strokes) + "</div>");
+      p.push('<p class="meta" style="margin-top:10px">Drawn over the page itself, ' +
+        "so it is shown here without the page beneath it.</p>");
+    }
+
+    p.push("<footer>Saved with Reader Comfort. This file is self-contained — " +
+      "it loads nothing and reports nothing.</footer>");
+    p.push("</div></body></html>");
+    return p.join("");
+  }
+
+  function download(name, html) {
+    var url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 30000);
   }
 
   /* ---------- persistence + live preview ---------- */

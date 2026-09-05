@@ -280,6 +280,21 @@
       if (typeof msg.tool === "string") { prefs.tool = msg.tool; layer.setAttribute("data-tool", prefs.tool); }
       paintBar(); savePrefs();
     }
+    if (msg.type === "rc:drawExport") {
+      // resolve colour/width names here so the export doesn't need our tables
+      sendResponse({
+        strokes: strokes.map(function (s) {
+          return {
+            color: COLORS[s.color] || s.color,
+            width: WIDTHS[s.width] || 4,
+            points: s.points
+          };
+        }),
+        docWidth: Math.max(document.documentElement.scrollWidth, 1),
+        docHeight: Math.max(document.documentElement.scrollHeight, 1)
+      });
+      return true;
+    }
     if (msg.type === "rc:drawUndo") { undo(); }
     if (msg.type === "rc:drawClearPage") { clearPage(); }
     if (msg.type === "rc:command" && msg.command === "toggle-draw-mode") { setDrawMode(!prefs.drawMode); }
