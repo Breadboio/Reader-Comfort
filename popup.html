@@ -91,6 +91,8 @@
     background:#fff; color:#8a2c1a; border:0; border-radius:14px; padding:6px 12px;
   }
   .disabled #hlSection, .disabled #drSection, .disabled #ntSection{ opacity:1; pointer-events:auto; }
+  /* a PDF tab degrades the reading controls, but its own button must still work */
+  .disabled #pdfSection{ opacity:1; pointer-events:auto; }
 </style>
 </head>
 <body>
@@ -262,6 +264,12 @@
       </span>
     </div>
     <p class="note">Drop a note (<kbd>Alt</kbd>+<kbd>N</kbd>), drag it by its bar, drag the corner to resize, click the dot to recolour. Notes stay on the page and come back on reload.</p>
+  </div>
+
+  <div class="row" id="pdfSection" hidden>
+    <span class="label"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 2h8l4 4v16H6z" opacity=".35"></path><path d="M14 2l4 4h-4z"></path><path d="M8.4 12h7.2v1.7H8.4zM8.4 15.4h7.2v1.7H8.4z"></path></svg>PDF</span>
+    <button class="chip" id="pdfOpen"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 4h7v2.2H6.2v11.6H18V13h2.2v7H4z" opacity=".35"></path><path d="M13.2 3H21v7.8h-2.2V6.75l-6.4 6.4-1.55-1.55 6.4-6.4H13.2z"></path></svg><span class="lbl">Open in Reader Comfort</span></button>
+    <p class="note">Chrome's built-in PDF viewer is closed to extensions, so the tools can't reach it. This reopens the PDF in a page they <i>can</i> work on &mdash; including a <b>Reading view</b> that reflows the text so fonts, size and spacing apply.</p>
   </div>
 
   <div class="row" id="exSection">

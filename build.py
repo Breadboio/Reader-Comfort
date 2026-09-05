@@ -21,7 +21,7 @@ DIST = ROOT / "dist"
 INCLUDE = [
     "content.js", "highlighter.js", "annotate.js", "notes.js",
     "background.js", "reader.css", "popup.html", "popup.js",
-    "icons", "fonts",
+    "icons", "fonts", "pdf",
 ]
 
 def load_manifest():

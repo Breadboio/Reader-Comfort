@@ -35,6 +35,17 @@ applies the reading system from `breadtoasting.com/fortigate-study-guide` to
   (`Alt+N` or the popup). Drag by its bar, drag the corner to resize, click
   the dot to recolour, collapse or delete. Notes persist per-URL.
 - Show italics as bold instead · underline all links · reduce animation
+- **PDFs** — Chrome's built-in PDF viewer is a plugin, so no extension can
+  reach inside it. Open a PDF and the popup offers **Open in Reader Comfort**,
+  which reopens it in a bundled PDF.js viewer where the tools do work. It has
+  two modes: *Page view* (the PDF as it looks, with an invisible text layer so
+  selection and highlighting work) and **Reading view**, which pulls the text
+  out and reflows it as ordinary paragraphs — the only way font, size, spacing
+  and line width can apply to a fixed PDF layout.
+- **Share what you marked up** — "Save as a web page" writes one
+  self-contained `.html` file with your highlighted quotes (plus surrounding
+  context), your note text, and your ink as SVG. The recipient needs no
+  extension and no network.
 
 Reading-tool settings are stored in `chrome.storage.sync`. By default they
 apply to every site; the popup can also save a **per-site** override (e.g. a
@@ -144,7 +155,17 @@ from the store forms). `store/screenshots/` holds the 1280×800 listing shots.
   file URLs" in the extension's details.
 - **Google Docs / Sheets / canvas-rendered text** — there's no real DOM text to
   restyle or highlight, so the highlighter and dictionary don't work there
-  (tint/ruler still do).
+  (tint/ruler still do). This is also the main gap on a Chromebook, where
+  Docs is often where students actually work; there's no good fix short of
+  Docs' own commenting.
+- **PDFs** — handled by reopening them in the bundled viewer (see above), not
+  by reaching into Chrome's. Consequences: the address bar shows the
+  extension's viewer URL, highlights are keyed to that URL, a scanned PDF has
+  no text to reflow or highlight, and a PDF behind a login only loads if the
+  browser's cookies suffice. `pdf.min.mjs` / `pdf.worker.min.mjs` are stock
+  [pdfjs-dist](https://www.npmjs.com/package/pdfjs-dist) 5.6.205, unmodified.
+  Store linters flag `DANGEROUS_EVAL` inside them; the viewer passes
+  `isEvalSupported: false`, so those paths are never taken.
 - **Web components (Shadow DOM)** — text inside a shadow root isn't reached by
   page-level styles, so tint/fonts/spacing may only partly apply on sites built
   heavily from custom elements.

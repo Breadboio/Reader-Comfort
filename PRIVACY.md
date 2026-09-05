@@ -40,6 +40,21 @@ at install time and on the add-on's Firefox listing. This extension declares
 install it, and the only optional category is the single highlighted word the
 dictionary feature sends when you turn that feature on (see above).
 
+## The PDF viewer
+
+Opening a PDF with **Open in Reader Comfort** fetches that PDF from wherever
+it already lives, using your browser's existing cookies — exactly as the
+browser itself would have. It is rendered locally by a bundled copy of
+Mozilla's PDF.js. Nothing about the PDF, its contents, or its address is sent
+anywhere, and no part of it is uploaded. Highlights and notes made on it are
+stored locally like any other page's.
+
+## Sharing a page
+
+**"Save as a web page"** writes a file to your own computer. It is created
+entirely in your browser and sent nowhere; what you then do with the file is
+up to you. The file itself is self-contained and loads nothing when opened.
+
 ## Permissions
 
 - **`storage`** — to save the preferences and page markup described above.
