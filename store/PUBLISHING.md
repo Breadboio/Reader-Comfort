@@ -49,14 +49,34 @@ Google account:
    - Host permission justification: same file.
    - Remote code: **No, I am not using remote code.**
    - Data usage: check the three "does not sell / does not transfer" boxes.
-     The extension stores data only in browser storage and makes no network
-     requests, so nothing is "collected."
+     Settings, highlights, notes and ink stay in browser storage. The one
+     exception to "no network requests" is the **opt-in dictionary**, off by
+     default: with it on, a right-click on a highlighted word sends that
+     single word to `api.dictionaryapi.dev`. Say so rather than claiming
+     nothing is sent — `PRIVACY.md` and `store/LISTING.md` both disclose it,
+     and a contradicting privacy tab is the kind of thing review catches.
    - Privacy policy URL:
      `https://github.com/Breadboio/Reader-Comfort/blob/main/PRIVACY.md`
      (or host it on breadtoasting.com and use that URL).
 6. Distribution: **Public**, all regions.
 7. Submit for review. Broad host permissions (`<all_urls>`) usually mean a
    few days of review rather than hours.
+
+### Validator warnings
+The 1.6.0 upload came back with six warnings; **all six are closed as of
+1.8.1**. Two `strict_min_version` ones and the Android `permissions.request`
+one were fixed in 1.6.1 (140 desktop / 142 Android); the three
+`UNSAFE_VAR_ASSIGNMENT` ones were fixed in 1.8.1 by building toolbar and popup
+markup as DOM nodes instead of `innerHTML` strings.
+
+What remains is five warnings inside the vendored PDF.js bundle
+(`DANGEROUS_EVAL` / `UNSAFE_VAR_ASSIGNMENT` on its `new Function` use). Those
+are stock Mozilla code and are expected — see the note below. Re-check before
+each upload with:
+
+```
+npx addons-linter --output=json build/firefox
+```
 
 ### Expect
 - Review may ask why `<all_urls>` is needed — the justification text already
