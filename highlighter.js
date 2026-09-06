@@ -23,7 +23,7 @@
   var restored = {};           // id -> true once wrapped into the DOM
   var pendingRange = null;
   var bar = null, dictEl = null;
-  var dictCache = {};          // word -> rendered HTML (session only)
+  var dictCache = {};          // word -> parsed entry record (session only)
   var observer = null, stopObserverAt = 0;
   var DICT_API = "https://api.dictionaryapi.dev/api/v2/entries/en/";
 
@@ -214,6 +214,43 @@
     return function () { clearTimeout(t); t = setTimeout(fn, ms); };
   }
 
+  /* ---------- DOM helpers ---------- */
+
+  /* Icons and popup contents are built as DOM nodes rather than assigned as
+   * HTML strings. The markup is static and the dictionary text is remote but
+   * inserted as text nodes, so nothing here can inject markup — and it keeps
+   * AMO's UNSAFE_VAR_ASSIGNMENT review warning off the submission. */
+  var SVG_NS = "http://www.w3.org/2000/svg";
+
+  var ICON_TRASH = [["M5 7h14l-1.1 13.2A2 2 0 0 1 15.9 22H8.1a2 2 0 0 1-2-1.8z"],
+                    ["M3 4.6h18v2.2H3zM9.4 2h5.2v2.6H9.4z", ".35"]];
+  var ICON_COPY = [["M4 2h8a2 2 0 0 1 2 2v2H8a2 2 0 0 0-2 2v8H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z", ".35"],
+                   ["M10 8h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z"]];
+
+  function icon(paths) {
+    var svg = document.createElementNS(SVG_NS, "svg");
+    svg.setAttribute("class", "rc-ic");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("fill", "currentColor");
+    svg.setAttribute("aria-hidden", "true");
+    paths.forEach(function (spec) {
+      var path = document.createElementNS(SVG_NS, "path");
+      path.setAttribute("d", spec[0]);
+      if (spec[1]) path.setAttribute("opacity", spec[1]);
+      svg.appendChild(path);
+    });
+    return svg;
+  }
+
+  function mk(tag, attrs, kids) {
+    var n = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) { n.setAttribute(k, attrs[k]); });
+    (kids || []).forEach(function (k) {
+      n.appendChild(typeof k === "string" ? document.createTextNode(k) : k);
+    });
+    return n;
+  }
+
   /* ---------- toolbar ---------- */
 
   function ensureBar() {
@@ -240,7 +277,7 @@
 
   function buildBar(mode, activeColor) {
     var b = ensureBar();
-    b.innerHTML = "";
+    while (b.firstChild) b.removeChild(b.firstChild);
     Object.keys(COLORS).forEach(function (c) {
       var btn = document.createElement("button");
       btn.type = "button";
@@ -258,10 +295,8 @@
     var act = document.createElement("button");
     act.type = "button";
     act.className = "rc-hl-act";
-    var actIcon = mode === "mark"
-      ? '<svg class="rc-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 7h14l-1.1 13.2A2 2 0 0 1 15.9 22H8.1a2 2 0 0 1-2-1.8z"></path><path d="M3 4.6h18v2.2H3zM9.4 2h5.2v2.6H9.4z" opacity=".35"></path></svg>'
-      : '<svg class="rc-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 2h8a2 2 0 0 1 2 2v2H8a2 2 0 0 0-2 2v8H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" opacity=".35"></path><path d="M10 8h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z"></path></svg>';
-    act.innerHTML = actIcon + (mode === "mark" ? "Remove" : "Copy");
+    act.appendChild(icon(mode === "mark" ? ICON_TRASH : ICON_COPY));
+    act.appendChild(document.createTextNode(mode === "mark" ? "Remove" : "Copy"));
     act.addEventListener("mousedown", function (e) { e.preventDefault(); });
     act.addEventListener("click", function () {
       if (mode === "mark") { removeHighlight(b._markId); }
@@ -325,9 +360,11 @@
 
   function hideDict() { if (dictEl) dictEl.hidden = true; }
 
-  function showDict(x, y, html) {
+  function showDict(x, y, nodes) {
     var d = ensureDict();
-    d.innerHTML = html + "<div class='rc-d-src'>dictionaryapi.dev</div>";
+    while (d.firstChild) d.removeChild(d.firstChild);
+    nodes.forEach(function (n) { d.appendChild(n); });
+    d.appendChild(mk("div", { "class": "rc-d-src" }, ["dictionaryapi.dev"]));
     d.hidden = false;
     d.style.visibility = "hidden";
     var dw = d.offsetWidth, dh = d.offsetHeight;
@@ -344,44 +381,56 @@
     d.style.visibility = "visible";
   }
 
-  function esc(s) {
-    return String(s).replace(/[&<>"]/g, function (c) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
-    });
-  }
-
-  function renderEntry(data) {
+  /* The API response is reduced to a plain record (what the cache holds), then
+   * turned into nodes on each show — a fragment could only be inserted once. */
+  function parseEntry(data) {
     var e = data && data[0];
     if (!e) return null;
-    var html = "<span class='rc-d-word'>" + esc(e.word) + "</span>";
-    var ph = e.phonetic || (e.phonetics || []).map(function (p) { return p.text; }).filter(Boolean)[0];
-    if (ph) html += "<span class='rc-d-ph'>" + esc(ph) + "</span>";
-    var lines = 0;
+    var entry = {
+      word: String(e.word == null ? "" : e.word),
+      phonetic: e.phonetic || (e.phonetics || []).map(function (p) { return p.text; }).filter(Boolean)[0] || "",
+      defs: []
+    };
     (e.meanings || []).forEach(function (m) {
-      if (lines >= 3) return;
+      if (entry.defs.length >= 3) return;
       (m.definitions || []).slice(0, 2).forEach(function (def) {
-        if (lines >= 3) return;
-        html += "<p><span class='rc-d-pos'>" + esc(m.partOfSpeech || "") + "</span> " + esc(def.definition) + "</p>";
-        lines++;
+        if (entry.defs.length >= 3) return;
+        entry.defs.push({
+          pos: String(m.partOfSpeech || ""),
+          text: String(def.definition == null ? "" : def.definition)
+        });
       });
     });
-    return html;
+    return entry;
+  }
+
+  function entryNodes(entry) {
+    var nodes = [mk("span", { "class": "rc-d-word" }, [entry.word])];
+    if (entry.phonetic) nodes.push(mk("span", { "class": "rc-d-ph" }, [String(entry.phonetic)]));
+    entry.defs.forEach(function (d) {
+      nodes.push(mk("p", null, [mk("span", { "class": "rc-d-pos" }, [d.pos]), " " + d.text]));
+    });
+    return nodes;
+  }
+
+  function messageNodes(word, message) {
+    return [mk("span", { "class": "rc-d-word" }, [word]), mk("p", null, [message])];
   }
 
   function lookup(word, x, y) {
     var key = word.toLowerCase();
-    if (dictCache[key]) { showDict(x, y, dictCache[key]); return; }
-    showDict(x, y, "<span class='rc-d-word'>" + esc(word) + "</span><p>Looking up…</p>");
+    if (dictCache[key]) { showDict(x, y, entryNodes(dictCache[key])); return; }
+    showDict(x, y, messageNodes(word, "Looking up…"));
     fetch(DICT_API + encodeURIComponent(key), { credentials: "omit" })
       .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
       .then(function (data) {
-        var html = renderEntry(data);
-        if (!html) return Promise.reject("empty");
-        dictCache[key] = html;
-        showDict(x, y, html);
+        var entry = parseEntry(data);
+        if (!entry) return Promise.reject("empty");
+        dictCache[key] = entry;
+        showDict(x, y, entryNodes(entry));
       })
       .catch(function () {
-        showDict(x, y, "<span class='rc-d-word'>" + esc(word) + "</span><p>No definition found.</p>");
+        showDict(x, y, messageNodes(word, "No definition found."));
       });
   }
 

@@ -194,30 +194,63 @@
     savePrefs();
   }
 
+  /* Icons and toolbar chrome are built as DOM nodes rather than assigned as
+   * HTML strings: the markup is static, but `innerHTML` still trips AMO's
+   * UNSAFE_VAR_ASSIGNMENT review warning. */
+  var ICON_PEN = [["M17.2 2.6l4.2 4.2-2.6 2.6-4.2-4.2zM13.3 6.5l4.2 4.2L7.6 20.4l-5 1 1-5z"]];
+  var ICON_ERASER = [["M9 20.8h12V23H9z", ".35"],
+                     ["M13.8 2.9l7.3 7.3a2 2 0 0 1 0 2.9l-5.6 5.6H7.9l-5-5a2 2 0 0 1 0-2.9l8-7.9a2 2 0 0 1 2.9 0z"]];
+  var ICON_UNDO = [["M7.6 5.2L2 10.8l5.6 5.6z"],
+                   ["M6 9.6h6.6a5.6 5.6 0 0 1 0 11.2H9.9v-2.7h2.7a2.9 2.9 0 0 0 0-5.8H6z"]];
+  var ICON_CLEAR = [["M5 7h14l-1.1 13.2A2 2 0 0 1 15.9 22H8.1a2 2 0 0 1-2-1.8z"],
+                    ["M3 4.6h18v2.2H3zM9.4 2h5.2v2.6H9.4z", ".35"]];
+
+  function icon(paths) {
+    var svg = document.createElementNS(SVG_NS, "svg");
+    svg.setAttribute("class", "rc-ic");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("fill", "currentColor");
+    svg.setAttribute("aria-hidden", "true");
+    paths.forEach(function (spec) {
+      var path = document.createElementNS(SVG_NS, "path");
+      path.setAttribute("d", spec[0]);
+      if (spec[1]) path.setAttribute("opacity", spec[1]);
+      svg.appendChild(path);
+    });
+    return svg;
+  }
+
+  function mk(tag, attrs, kids) {
+    var n = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) { n.setAttribute(k, attrs[k]); });
+    (kids || []).forEach(function (k) {
+      n.appendChild(typeof k === "string" ? document.createTextNode(k) : k);
+    });
+    return n;
+  }
+
   function ensureBar() {
     if (bar && bar.isConnected) return;
     bar = document.createElement("div");
     bar.id = "rc-draw-bar";
-    var ICON_PEN = '<svg class="rc-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.2 2.6l4.2 4.2-2.6 2.6-4.2-4.2zM13.3 6.5l4.2 4.2L7.6 20.4l-5 1 1-5z"></path></svg>';
-    var ICON_ERASER = '<svg class="rc-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 20.8h12V23H9z" opacity=".35"></path><path d="M13.8 2.9l7.3 7.3a2 2 0 0 1 0 2.9l-5.6 5.6H7.9l-5-5a2 2 0 0 1 0-2.9l8-7.9a2 2 0 0 1 2.9 0z"></path></svg>';
-    var ICON_UNDO = '<svg class="rc-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.6 5.2L2 10.8l5.6 5.6z"></path><path d="M6 9.6h6.6a5.6 5.6 0 0 1 0 11.2H9.9v-2.7h2.7a2.9 2.9 0 0 0 0-5.8H6z"></path></svg>';
-    var ICON_CLEAR = '<svg class="rc-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 7h14l-1.1 13.2A2 2 0 0 1 15.9 22H8.1a2 2 0 0 1-2-1.8z"></path><path d="M3 4.6h18v2.2H3zM9.4 2h5.2v2.6H9.4z" opacity=".35"></path></svg>';
-    bar.innerHTML =
-      '<div class="rc-draw-row" id="rcdTool">' +
-        '<button class="rc-draw-t" data-t="pen" title="Pen">' + ICON_PEN + '</button>' +
-        '<button class="rc-draw-t" data-t="eraser" title="Eraser">' + ICON_ERASER + '</button>' +
-      "</div>" +
-      '<div class="rc-draw-row" id="rcdColor"></div>' +
-      '<div class="rc-draw-row" id="rcdWidth">' +
-        '<button class="rc-draw-w" data-w="s">S</button>' +
-        '<button class="rc-draw-w" data-w="m">M</button>' +
-        '<button class="rc-draw-w" data-w="l">L</button>' +
-      "</div>" +
-      '<div class="rc-draw-row"><button class="rc-draw-act" id="rcdUndo">' + ICON_UNDO + 'Undo</button>' +
-        '<button class="rc-draw-act" id="rcdClear">' + ICON_CLEAR + 'Clear</button></div>' +
-      '<span class="note" id="rcdCount" style="font-size:11px;color:#666"></span>' +
-      '<button class="rc-draw-x" id="rcdExit" title="Exit draw mode">✕</button>';
-    var colorRow = bar.querySelector("#rcdColor");
+
+    var toolRow = mk("div", { "class": "rc-draw-row", id: "rcdTool" }, [
+      mk("button", { "class": "rc-draw-t", "data-t": "pen", title: "Pen" }, [icon(ICON_PEN)]),
+      mk("button", { "class": "rc-draw-t", "data-t": "eraser", title: "Eraser" }, [icon(ICON_ERASER)])
+    ]);
+    var colorRow = mk("div", { "class": "rc-draw-row", id: "rcdColor" });
+    var widthRow = mk("div", { "class": "rc-draw-row", id: "rcdWidth" },
+      ["s", "m", "l"].map(function (w) {
+        return mk("button", { "class": "rc-draw-w", "data-w": w }, [w.toUpperCase()]);
+      }));
+    var undoBtn = mk("button", { "class": "rc-draw-act", id: "rcdUndo" }, [icon(ICON_UNDO), "Undo"]);
+    var clearBtn = mk("button", { "class": "rc-draw-act", id: "rcdClear" }, [icon(ICON_CLEAR), "Clear"]);
+    var actRow = mk("div", { "class": "rc-draw-row" }, [undoBtn, clearBtn]);
+    var countEl = mk("span", { "class": "note", id: "rcdCount", style: "font-size:11px;color:#666" });
+    var exitBtn = mk("button", { "class": "rc-draw-x", id: "rcdExit", title: "Exit draw mode" }, ["\u2715"]);
+
+    [toolRow, colorRow, widthRow, actRow, countEl, exitBtn].forEach(function (n) { bar.appendChild(n); });
+
     Object.keys(COLORS).forEach(function (c) {
       var b = document.createElement("button");
       b.className = "rc-draw-c";
@@ -225,7 +258,7 @@
       b.style.background = COLORS[c];
       colorRow.appendChild(b);
     });
-    bar.querySelector("#rcdTool").addEventListener("click", function (e) {
+    toolRow.addEventListener("click", function (e) {
       var b = e.target.closest("[data-t]"); if (!b) return;
       prefs.tool = b.getAttribute("data-t"); layer.setAttribute("data-tool", prefs.tool);
       paintBar(); savePrefs();
@@ -234,13 +267,13 @@
       var b = e.target.closest("[data-c]"); if (!b) return;
       prefs.color = b.getAttribute("data-c"); paintBar(); savePrefs();
     });
-    bar.querySelector("#rcdWidth").addEventListener("click", function (e) {
+    widthRow.addEventListener("click", function (e) {
       var b = e.target.closest("[data-w]"); if (!b) return;
       prefs.width = b.getAttribute("data-w"); paintBar(); savePrefs();
     });
-    bar.querySelector("#rcdUndo").addEventListener("click", undo);
-    bar.querySelector("#rcdClear").addEventListener("click", clearPage);
-    bar.querySelector("#rcdExit").addEventListener("click", function () { setDrawMode(false); });
+    undoBtn.addEventListener("click", undo);
+    clearBtn.addEventListener("click", clearPage);
+    exitBtn.addEventListener("click", function () { setDrawMode(false); });
     (document.body || document.documentElement).appendChild(bar);
   }
 

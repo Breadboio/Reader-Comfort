@@ -54,17 +54,15 @@ function fail(msg, detail) {
   }
   if (fileUrl) {
     var a = document.createElement("p");
-    a.innerHTML = '<a href="' + escapeAttr(fileUrl) + '">Open the original PDF instead</a>';
     a.style.marginTop = "12px";
+    var link = document.createElement("a");
+    link.href = fileUrl;
+    link.textContent = "Open the original PDF instead";
+    a.appendChild(link);
     s.appendChild(a);
   }
   $("rcp-pages").hidden = true;
   $("rcp-reader").hidden = true;
-}
-
-function escapeAttr(s) {
-  return String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;")
-    .replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 async function load() {
