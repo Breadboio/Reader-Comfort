@@ -14,6 +14,11 @@ The source `manifest.json` carries keys for both engines; `build.py` splits it
 (Chrome gets `background.service_worker`, Firefox gets `background.scripts` +
 `browser_specific_settings`).
 
+It also picks the PDF.js flavour per store, from the one upstream release in
+`pdf/vendor/`: Chrome gets the minified build (smaller and faster to parse,
+which is what a Chromebook cares about), Firefox gets the readable one (AMO
+reviews by hand). See `pdf/vendor/README.md`.
+
 ---
 
 ## Chrome Web Store
@@ -81,10 +86,14 @@ npx addons-linter --output=json build/firefox
 ### Expect
 - Review may ask why `<all_urls>` is needed — the justification text already
   answers it (the tools must run on any page the user reads).
-- Review may flag **eval inside `pdf/pdf.worker.min.mjs`**. That is stock
-  Mozilla PDF.js, vendored unmodified; the viewer initialises it with
-  `isEvalSupported: false`. `store/LISTING.md` has the wording and the upstream
-  link for byte comparison.
+- Review may flag **eval inside `pdf/pdf.worker.mjs`** (5 warnings). That is
+  stock Mozilla PDF.js 5.6.205, vendored unmodified. Firefox ships the
+  *non-minified* build precisely so a reviewer can read it, and
+  `pdf/vendor/README.md` names each warning line by line, with the upstream
+  link and SHA256s for byte comparison. The short version: two are a
+  `new Function("")` feature probe that detects eval being *unavailable*, one
+  is behind the `isEvalSupported: false` the viewer sets, and two are PDF.js
+  importing its own worker.
 - If they push back, the fallback is `activeTab` + `optional_host_permissions`,
   but that makes the extension only activate after a click on every site, which
   hurts the reading-tools experience. Try the `<all_urls>` justification first.

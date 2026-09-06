@@ -41,7 +41,10 @@ applies the reading system from `breadtoasting.com/fortigate-study-guide` to
   two modes: *Page view* (the PDF as it looks, with an invisible text layer so
   selection and highlighting work) and **Reading view**, which pulls the text
   out and reflows it as ordinary paragraphs — the only way font, size, spacing
-  and line width can apply to a fixed PDF layout.
+  and line width can apply to a fixed PDF layout. Page view renders lazily: a
+  long PDF gets every page's box (so the scrollbar is right immediately) but
+  only the handful near the viewport carry a canvas, which is what keeps a
+  400-page document from exhausting a low-memory machine.
 - **Share what you marked up** — "Save as a web page" writes one
   self-contained `.html` file with your highlighted quotes (plus surrounding
   context), your note text, and your ink as SVG. The recipient needs no
@@ -162,10 +165,14 @@ from the store forms). `store/screenshots/` holds the 1280×800 listing shots.
   by reaching into Chrome's. Consequences: the address bar shows the
   extension's viewer URL, highlights are keyed to that URL, a scanned PDF has
   no text to reflow or highlight, and a PDF behind a login only loads if the
-  browser's cookies suffice. `pdf.min.mjs` / `pdf.worker.min.mjs` are stock
-  [pdfjs-dist](https://www.npmjs.com/package/pdfjs-dist) 5.6.205, unmodified.
-  Store linters flag `DANGEROUS_EVAL` inside them; the viewer passes
-  `isEvalSupported: false`, so those paths are never taken.
+  browser's cookies suffice. PDF.js is stock
+  [pdfjs-dist](https://www.npmjs.com/package/pdfjs-dist) 5.6.205, unmodified,
+  kept in `pdf/vendor/`; Chrome ships the minified build and Firefox the
+  readable one — see `pdf/vendor/README.md`, which also accounts for the
+  `DANGEROUS_EVAL` warnings store linters raise against it. Page rendering is
+  lazy, so memory tracks the viewport rather than the page count; a page that
+  scrolls well clear gives its canvas back, and the page number shows in the
+  empty box until it is rendered again.
 - **Web components (Shadow DOM)** — text inside a shadow root isn't reached by
   page-level styles, so tint/fonts/spacing may only partly apply on sites built
   heavily from custom elements.

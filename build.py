@@ -21,8 +21,20 @@ DIST = ROOT / "dist"
 INCLUDE = [
     "content.js", "highlighter.js", "annotate.js", "notes.js",
     "background.js", "reader.css", "popup.html", "popup.js",
-    "icons", "fonts", "pdf",
+    "icons", "fonts",
 ]
+
+# PDF.js ships to the two stores in different flavours, from the same upstream
+# release in pdf/vendor/. Chrome gets the minified build: Chromebooks are the
+# thin end of that audience and 1.6MB of parse beats 3.0MB. AMO reviews by
+# hand and treats minified code as something to demand sources for, so Firefox
+# gets the readable build and the question never comes up. Both land under the
+# same names, which is all viewer.js imports.
+PDFJS = {
+    "chrome":  {"pdf.mjs": "pdf.min.mjs", "pdf.worker.mjs": "pdf.worker.min.mjs"},
+    "firefox": {"pdf.mjs": "pdf.mjs",     "pdf.worker.mjs": "pdf.worker.mjs"},
+}
+PDF_FILES = ["viewer.html", "viewer.css", "viewer.js"]
 
 def load_manifest():
     return json.loads((ROOT / "manifest.json").read_text())
@@ -54,6 +66,16 @@ def stage(target, manifest):
             shutil.copytree(src, out / name, ignore=shutil.ignore_patterns("README.md"))
         else:
             shutil.copy2(src, out / name)
+
+    pdf_out = out / "pdf"
+    pdf_out.mkdir()
+    for name in PDF_FILES:
+        shutil.copy2(ROOT / "pdf" / name, pdf_out / name)
+    for dest, src_name in PDFJS[target].items():
+        src = ROOT / "pdf" / "vendor" / src_name
+        if not src.exists():
+            raise SystemExit(f"missing: pdf/vendor/{src_name}")
+        shutil.copy2(src, pdf_out / dest)
     return out
 
 def zip_dir(folder, zip_path):

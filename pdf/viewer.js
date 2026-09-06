@@ -12,9 +12,9 @@
  *                 font, size, spacing and line width actually apply — the
  *                 thing a fixed PDF layout otherwise makes impossible.
  */
-import * as pdfjsLib from "./pdf.min.mjs";
+import * as pdfjsLib from "./pdf.mjs";
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = chrome.runtime.getURL("pdf/pdf.worker.min.mjs");
+pdfjsLib.GlobalWorkerOptions.workerSrc = chrome.runtime.getURL("pdf/pdf.worker.mjs");
 
 var $ = function (id) { return document.getElementById(id); };
 var params = new URLSearchParams(location.search);
@@ -24,6 +24,9 @@ var doc = null;
 var scale = 1.25;
 var mode = "page";              // "page" | "reader"
 var renderToken = 0;            // bumps to abandon an in-flight render
+var pageObserver = null;        // decides which pages are worth holding in memory
+var placeholders = [];          // one sized box per page, index 0 == page 1
+var MAX_RATIO = 2;              // cap the backing store on very high-DPI screens
 
 /* ---------- boot ---------- */
 
@@ -94,9 +97,18 @@ async function load() {
 
 /* ---------- rendering ---------- */
 
+/* Page view renders lazily, and this is not an optimisation — it is the
+ * difference between working and not. Rendering every page up front allocates
+ * a full canvas backing store per page: a 400-page PDF measured at 4.6 GB and
+ * took 40s to settle, which on a 4GB Chromebook means the tab is killed.
+ * Instead every page gets a correctly-sized empty box immediately (so the
+ * scrollbar is honest from the start), and only pages near the viewport carry
+ * a canvas. Pages that scroll well clear of it give theirs back. */
+
 async function render() {
   var token = ++renderToken;
   if (mode === "reader") {
+    teardownPages();
     $("rcp-pages").hidden = true;
     $("rcp-reader").hidden = false;
     await renderReader(token);
@@ -105,47 +117,85 @@ async function render() {
     $("rcp-pages").hidden = false;
     await renderPages(token);
   }
-  // the highlighter re-anchors on DOM changes it doesn't know about, so give
-  // it a nudge once the new content is in place
-  if (token === renderToken) {
-    window.dispatchEvent(new Event("rc:content-changed"));
-  }
+}
+
+function teardownPages() {
+  if (pageObserver) { pageObserver.disconnect(); pageObserver = null; }
+  placeholders.forEach(freePage);
+  placeholders = [];
+  $("rcp-pages").textContent = "";
 }
 
 async function renderPages(token) {
+  teardownPages();
   var host = $("rcp-pages");
-  host.textContent = "";
-  for (var n = 1; n <= doc.numPages; n++) {
-    if (token !== renderToken) return;
-    var page = await doc.getPage(n);
-    if (token !== renderToken) return;
-    var viewport = page.getViewport({ scale: scale });
 
+  // Page 1's size sets every placeholder. A PDF with mixed page sizes corrects
+  // each box as it renders; guessing beats blocking on doc.numPages getPage()s.
+  var first = await doc.getPage(1);
+  if (token !== renderToken) return;
+  var base = first.getViewport({ scale: scale });
+
+  for (var n = 1; n <= doc.numPages; n++) {
     var wrap = document.createElement("div");
     wrap.className = "rcp-page";
+    wrap.dataset.page = String(n);
+    wrap.style.width = Math.floor(base.width) + "px";
+    wrap.style.height = Math.floor(base.height) + "px";
+    var label = document.createElement("span");
+    label.className = "rcp-pagenum";
+    label.textContent = String(n);
+    wrap.appendChild(label);
+    host.appendChild(wrap);
+    placeholders.push(wrap);
+  }
+
+  // Three viewports of lead either way. Enough that a fast fling rarely
+  // outruns the renderer, cheap enough that only a handful of pages are ever
+  // live -- measured at ~7 canvases / ~80MB on a 400-page document, against
+  // 400 canvases / 4.6GB when every page rendered up front.
+  pageObserver = new IntersectionObserver(function (entries) {
+    if (token !== renderToken) return;
+    entries.forEach(function (e) {
+      if (e.isIntersecting) renderPage(e.target, token);
+      else freePage(e.target);
+    });
+  }, { root: null, rootMargin: "300% 0px" });
+
+  placeholders.forEach(function (w) { pageObserver.observe(w); });
+}
+
+async function renderPage(wrap, token) {
+  if (wrap._state) return;                 // already rendered, or on its way
+  wrap._state = "busy";
+  var n = +wrap.dataset.page;
+  try {
+    var page = await doc.getPage(n);
+    if (token !== renderToken || wrap._state !== "busy") { wrap._state = null; return; }
+    var viewport = page.getViewport({ scale: scale });
     wrap.style.width = Math.floor(viewport.width) + "px";
     wrap.style.height = Math.floor(viewport.height) + "px";
 
     var canvas = document.createElement("canvas");
-    var ratio = window.devicePixelRatio || 1;
+    var ratio = Math.min(window.devicePixelRatio || 1, MAX_RATIO);
     canvas.width = Math.floor(viewport.width * ratio);
     canvas.height = Math.floor(viewport.height * ratio);
     canvas.style.width = Math.floor(viewport.width) + "px";
     canvas.style.height = Math.floor(viewport.height) + "px";
+
+    var ctx = canvas.getContext("2d", { alpha: false });
+    ctx.scale(ratio, ratio);
+    var task = page.render({ canvasContext: ctx, viewport: viewport, canvas: canvas });
+    wrap._task = task;
+    await task.promise;
+    wrap._task = null;
+    if (token !== renderToken || wrap._state !== "busy") { wrap._state = null; return; }
     wrap.appendChild(canvas);
 
     var textDiv = document.createElement("div");
     textDiv.className = "textLayer";
     textDiv.style.setProperty("--total-scale-factor", String(scale));
     wrap.appendChild(textDiv);
-
-    host.appendChild(wrap);
-
-    var ctx = canvas.getContext("2d", { alpha: false });
-    ctx.scale(ratio, ratio);
-    await page.render({ canvasContext: ctx, viewport: viewport, canvas: canvas }).promise;
-    if (token !== renderToken) return;
-
     try {
       var tl = new pdfjsLib.TextLayer({
         textContentSource: await page.getTextContent(),
@@ -156,9 +206,46 @@ async function renderPages(token) {
     } catch (e) {
       // a page without extractable text just isn't selectable; not fatal
     }
+    if (token !== renderToken || wrap._state !== "busy") { wrap._state = null; return; }
+    wrap._state = "done";
+    contentChanged();
+  } catch (e) {
+    // a cancelled render lands here too; leave the box for the next pass
+    wrap._state = null;
   }
 }
 
+/* Give back the expensive parts, keep the box so the scroll height holds. */
+function freePage(wrap) {
+  if (wrap._task) {
+    try { wrap._task.cancel(); } catch (e) {}
+    wrap._task = null;
+  }
+  if (!wrap._state) return;
+  wrap._state = null;
+  var canvas = wrap.querySelector("canvas");
+  // zeroing the dimensions releases the backing store now rather than whenever
+  // the collector next runs — the whole point of the exercise
+  if (canvas) { canvas.width = 0; canvas.height = 0; }
+  var label = wrap.querySelector(".rcp-pagenum");
+  wrap.textContent = "";
+  if (label) wrap.appendChild(label);
+}
+
+/* The highlighter anchors into whatever text is in the DOM. Lazily rendered
+ * pages and progressively appended reader text are both content it never saw,
+ * so tell it to have another go. Debounced: a scroll can land several pages. */
+var changeTimer = null;
+function contentChanged() {
+  clearTimeout(changeTimer);
+  changeTimer = setTimeout(function () {
+    window.dispatchEvent(new Event("rc:content-changed"));
+  }, 250);
+}
+
+/* Reader mode is text-only, so memory is not the problem here — latency is.
+ * Append each page as its text arrives and yield, so a long PDF is readable
+ * from the top while the rest is still being pulled. */
 async function renderReader(token) {
   var host = $("rcp-doc");
   host.textContent = "";
@@ -179,7 +266,12 @@ async function renderReader(token) {
       p.textContent = text;
       host.appendChild(p);
     });
+    if (n % 5 === 0) {
+      contentChanged();
+      await new Promise(function (r) { setTimeout(r, 0); });   // let the page breathe
+    }
   }
+  if (token !== renderToken) return;
   if (!host.textContent.trim()) {
     var p = document.createElement("p");
     p.style.opacity = ".75";
@@ -187,6 +279,7 @@ async function renderReader(token) {
       "Page view will still show it, but there's no text to reflow or highlight.";
     host.appendChild(p);
   }
+  contentChanged();
 }
 
 /* PDF text comes as positioned runs, not sentences. Group runs into lines by

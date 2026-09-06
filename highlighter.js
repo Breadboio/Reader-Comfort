@@ -197,8 +197,8 @@
     if (!pending) return;
     [400, 1200, 3000, 6000].forEach(function (ms) { setTimeout(restoreAll, ms); });
     // watch for late-rendered content for a little while
+    stopObserverAt = Date.now() + 12000;   // new content extends the window
     if (!observer) {
-      stopObserverAt = Date.now() + 12000;
       observer = new MutationObserver(debounce(function () {
         if (Date.now() > stopObserverAt || !highlights.some(function (h) { return !restored[h.id]; })) {
           observer.disconnect(); observer = null; return;
@@ -517,6 +517,14 @@
       showBarForMark(mark);
     }
   }, true);
+
+  /* The PDF viewer renders its pages lazily and appends reader-mode text as it
+   * arrives, long after the 12s observer window would have closed. It says so
+   * with this event; each one is fresh text to anchor into. */
+  window.addEventListener("rc:content-changed", function () {
+    restoreAll();
+    scheduleRetries();
+  });
 
   document.addEventListener("contextmenu", function (e) {
     if (!prefs.enabled || !prefs.dict) return;
