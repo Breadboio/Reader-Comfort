@@ -20,7 +20,8 @@
     ruler: false,
     rulerHeight: 130,
     rulerDblclick: true, // triple-click the page toggles the ruler
-    rulerWheel: true,   // Alt + mouse wheel changes the ruler's height
+    rulerWheel: true,          // modifier + mouse wheel changes the ruler's height
+    rulerWheelMod: "alt-shift",
     killItalics: false, // render <em>/<i> as bold instead of slanted
     linkUnderline: false,
     reduceMotion: false
@@ -234,20 +235,39 @@
     }, { passive: true });
   }
 
-  /* ---------- ruler height: Alt + wheel, and the keyboard actions ---------- */
+  /* ---------- ruler height: modifier + wheel, and the keyboard actions ----------
+   *
+   * Which modifier is a setting, because every candidate is spoken for
+   * somewhere. Chrome leaves plain Alt+wheel alone, but Firefox binds it to
+   * history back/forward by default (mousewheel.with_alt.action), and a lot of
+   * Linux window managers grab Alt+scroll for opacity or volume before the
+   * browser ever sees it -- preventDefault cannot win an argument it is never
+   * told about. Alt+Shift is the default here because it is claimed least
+   * often; anyone whose desktop disagrees can pick another, or turn the
+   * gesture off and bind ruler-bigger / ruler-smaller to a key instead.
+   */
 
   var RULER_MIN = 40, RULER_MAX = 400;
   var rulerPersistT = null, sizeTagT = null;
 
+  var WHEEL_MODS = {
+    "alt":       function (e) { return e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey; },
+    "alt-shift": function (e) { return e.altKey && e.shiftKey && !e.ctrlKey && !e.metaKey; },
+    "ctrl-alt":  function (e) { return e.altKey && e.ctrlKey && !e.shiftKey && !e.metaKey; }
+  };
+
   function clampRuler(v) { return Math.max(RULER_MIN, Math.min(RULER_MAX, Math.round(v))); }
 
   document.addEventListener("wheel", function (e) {
-    if (!e.altKey || e.ctrlKey || e.metaKey) return;
     if (!current.enabled || !current.ruler || current.rulerWheel === false) return;
+    var match = WHEEL_MODS[current.rulerWheelMod] || WHEEL_MODS["alt-shift"];
+    if (!match(e)) return;
     ensureRuler();
     if (!ruler) return;
 
-    e.preventDefault();  // Alt+wheel scrolls sideways on some platforms
+    /* the modifier combinations all have a default action of their own
+       somewhere -- horizontal scroll, zoom, history -- so cancel it */
+    e.preventDefault();
 
     /* deltaY is roughly 100 a notch on a mouse and a handful of pixels on a
        trackpad, so scale rather than count notches; the cap stops a flung

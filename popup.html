@@ -70,6 +70,11 @@
     text-decoration:underline; cursor:pointer; padding:0; align-self:flex-start;
   }
   footer{ padding:10px 14px; border-top:2px solid var(--rule); font-size:11px; color:var(--ink-soft); }
+  .check select{
+    font:inherit; font-size:11px; padding:1px 3px; margin:0 1px;
+    border:1px solid var(--rule); border-radius:4px;
+    background:var(--panel); color:var(--ink); cursor:pointer;
+  }
   #openOptions{
     display:block; margin:7px 0 0; padding:0; border:0; background:none;
     font:inherit; font-weight:700; color:var(--ink); cursor:pointer;
@@ -191,7 +196,12 @@
     </div>
     <input type="range" id="rulerHeight" min="40" max="400" step="10" value="130" aria-label="Ruler height">
     <label class="check"><input type="checkbox" id="rulerDblclick"> Triple-click the page to toggle the ruler</label>
-    <label class="check"><input type="checkbox" id="rulerWheel"> Hold <kbd>Alt</kbd> and scroll to change its height</label>
+    <label class="check"><input type="checkbox" id="rulerWheel"> Hold
+      <select id="rulerWheelMod" aria-label="Modifier for the ruler resize gesture">
+        <option value="alt-shift">Alt + Shift</option>
+        <option value="alt">Alt</option>
+        <option value="ctrl-alt">Ctrl + Alt</option>
+      </select> and scroll to change its height</label>
   </div>
 
   <div class="row">

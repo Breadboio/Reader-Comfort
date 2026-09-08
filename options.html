@@ -128,6 +128,12 @@
   label.check:last-of-type{margin-bottom:0}
   label.check input{margin-top:3px}
   label.check .hint{display:block; font-size:12px; color:var(--ink-soft); margin-top:1px}
+  label.check select{
+    font:inherit; font-size:12px; font-weight:700; padding:1px 5px; margin:0 1px;
+    border:1px solid var(--rule); border-radius:5px;
+    background:var(--panel); color:var(--ink); cursor:pointer;
+  }
+  label.check select:disabled{opacity:.5; cursor:default}
 
   #saved{
     position:fixed; right:18px; bottom:18px; background:var(--good); color:#062015;
@@ -198,8 +204,16 @@
     </label>
     <label class="check">
       <input type="checkbox" id="rulerWheel">
-      <span>Hold <b>Alt</b> and scroll to change the ruler's height
-        <span class="hint">Only while the ruler is showing. The height appears inside the ruler as you go.</span></span>
+      <span>Hold <select id="rulerWheelMod" aria-label="Modifier for the ruler resize gesture">
+          <option value="alt-shift">Alt + Shift</option>
+          <option value="alt">Alt</option>
+          <option value="ctrl-alt">Ctrl + Alt</option>
+        </select> and scroll to change the ruler's height
+        <span class="hint">Only while the ruler is showing. The height appears inside the ruler as you go.
+          Every combination is claimed by something somewhere &mdash; Firefox uses plain Alt+scroll to go
+          back and forward, and some Linux desktops take it before the browser sees it. If the gesture does
+          nothing, try another combination here, or turn it off and bind
+          <b>Ruler &mdash; taller</b> and <b>Ruler &mdash; shorter</b> to keys above.</span></span>
     </label>
     <label class="check">
       <input type="checkbox" id="macroToast">

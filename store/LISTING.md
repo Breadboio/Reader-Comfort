@@ -76,8 +76,9 @@ click away. Shortcuts stay quiet while you're typing in a text field.
 
 RULER GESTURES
 Triple-click anywhere on the page to show or hide the reading ruler, and hold
-Alt while you scroll to change its height without reaching for the panel. Both
-gestures can be switched off if they get in your way.
+Alt+Shift while you scroll to change its height without reaching for the panel.
+You can switch that to Alt or Ctrl+Alt if your system already uses it for
+something else, or turn either gesture off if they get in your way.
 
 Open source: https://github.com/Breadboio/Reader-Comfort
 

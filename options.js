@@ -422,6 +422,31 @@
     });
   }
 
+  /* Alt is Option on a Mac — say what is actually printed on the key */
+  function localizeMods(sel) {
+    if (!RC || !RC.isMac) return;
+    Array.prototype.forEach.call(sel.options, function (o) {
+      o.textContent = o.textContent.replace("Alt", "Option");
+    });
+  }
+
+  /* a menu that edits one all-sites setting, greyed while `gate` is unticked */
+  function wireChoice(id, key, fallback, gate) {
+    var el = $(id);
+    localizeMods(el);
+    el.value = globalSettings[key] || fallback;
+    var gateEl = gate && $(gate);
+    var sync = function () { if (gateEl) el.disabled = !gateEl.checked; };
+    sync();
+    if (gateEl) gateEl.addEventListener("change", sync);
+    el.addEventListener("change", function () {
+      globalSettings[key] = el.value;
+      chrome.storage.sync.set({ global: globalSettings }, function () {
+        if (!chrome.runtime.lastError) flashSaved();
+      });
+    });
+  }
+
   /* ---------- boot ---------- */
 
   chrome.storage.sync.get(["binds", "macroPrefs", "global"], function (store) {
@@ -437,6 +462,7 @@
 
     wireGesture("rulerDblclick", "rulerDblclick", true);
     wireGesture("rulerWheel", "rulerWheel", true);
+    wireChoice("rulerWheelMod", "rulerWheelMod", "alt-shift", "rulerWheel");
 
     var toast = $("macroToast");
     toast.checked = macroPrefs.toast !== false;

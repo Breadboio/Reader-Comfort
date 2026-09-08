@@ -14,10 +14,18 @@ applies the reading system from `breadtoasting.com/fortigate-study-guide` to
 - **Reading ruler** — a horizontal focus band that follows the pointer
   (dims the rest of the page). Toggle it with `Alt+R`, the popup, or a
   **triple-click anywhere on the page** (that last one is an option, on by
-  default; it's ignored on links, buttons, and form fields). **Hold `Alt` and
-  scroll** to change its height without leaving the page — the band resizes
+  default; it's ignored on links, buttons, and form fields). **Hold `Alt+Shift`
+  and scroll** to change its height without leaving the page — the band resizes
   under the pointer and shows its height while you turn the wheel (40–400 px).
-  Both gestures can be switched off in the popup or on the settings page.
+  The modifier is a setting (`Alt+Shift`, `Alt`, or `Ctrl+Alt`) because every
+  combination is claimed by something somewhere: Chrome leaves plain `Alt`
+  alone, but Firefox binds `Alt`+scroll to history back/forward by default
+  (`mousewheel.with_alt.action`), and several Linux window managers grab it for
+  opacity or volume *before the browser sees it* — which no amount of
+  `preventDefault` can rescue. `Alt+Shift` is the default as the least-claimed
+  of the three. Both gestures can be switched off in the popup or on the
+  settings page, and `Ruler — taller` / `Ruler — shorter` are bindable to any
+  key in the shortcut editor if the wheel is a lost cause on your desktop.
 - **Highlighter** — select text, pick a colour (yellow / green / pink / blue);
   highlights persist per-URL and are re-anchored on reload. Click a highlight
   to recolour or remove it. "Quick mode" (`Alt+H`) highlights the instant you

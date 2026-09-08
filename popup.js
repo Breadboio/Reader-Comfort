@@ -5,7 +5,7 @@
   var DEFAULTS = {
     enabled: true, tint: "off", size: 100, leading: "off", spacing: "off",
     font: "off", measure: "off", ruler: false, rulerHeight: 130,
-    rulerDblclick: true, rulerWheel: true,
+    rulerDblclick: true, rulerWheel: true, rulerWheelMod: "alt-shift",
     killItalics: false, linkUnderline: false, reduceMotion: false
   };
 
@@ -530,6 +530,8 @@
     $("rulerHeight").value = s.rulerHeight;
     $("rulerDblclick").checked = s.rulerDblclick !== false;
     $("rulerWheel").checked = s.rulerWheel !== false;
+    $("rulerWheelMod").value = s.rulerWheelMod || "alt-shift";
+    $("rulerWheelMod").disabled = s.rulerWheel === false;
     $("killItalics").checked = s.killItalics;
     $("linkUnderline").checked = s.linkUnderline;
     $("reduceMotion").checked = s.reduceMotion;
@@ -605,7 +607,18 @@
     });
 
     ["rulerDblclick", "rulerWheel", "killItalics", "linkUnderline", "reduceMotion"].forEach(function (k) {
-      $(k).addEventListener("change", function () { s[k] = this.checked; commit(); });
+      $(k).addEventListener("change", function () { s[k] = this.checked; render(); commit(); });
+    });
+
+    /* Alt is Option on a Mac */
+    if (/Mac|iPhone|iPad/.test(navigator.platform || "")) {
+      Array.prototype.forEach.call($("rulerWheelMod").options, function (o) {
+        o.textContent = o.textContent.replace("Alt", "Option");
+      });
+    }
+
+    $("rulerWheelMod").addEventListener("change", function () {
+      s.rulerWheelMod = this.value; commit();
     });
 
   }
