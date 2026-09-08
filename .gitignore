@@ -16,3 +16,7 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+# funding / grant strategy — deliberately NOT public
+grants/
+*.local.md
