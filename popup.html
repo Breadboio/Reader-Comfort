@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<title>Reader Comfort</title>
 <style>
   :root{
     --paper:#FAF3E3; --paper-2:#F3EAD5; --panel:#FFFDF6;
@@ -85,7 +86,10 @@
     font-family:ui-monospace,monospace; background:var(--panel); border:1px solid var(--rule);
     border-radius:4px; padding:0 4px; font-size:10.5px;
   }
-  .disabled{ opacity:.4; pointer-events:none; }
+  /* Dim the CHILDREN, not the container. opacity on a parent creates a
+     stacking context that no descendant can opt out of, so the exemptions
+     below only work if the parent itself stays fully opaque. */
+  .disabled > .row{ opacity:.4; pointer-events:none; }
   svg.ic{ width:14px; height:14px; flex:0 0 auto; vertical-align:-3px; margin-right:5px; }
   .row > .label{ display:flex; align-items:center; }
   label.check svg.ic{ margin-left:6px; margin-right:6px; }
@@ -101,9 +105,16 @@
     font:inherit; font-size:12.5px; font-weight:700; cursor:pointer;
     background:#fff; color:#8a2c1a; border:0; border-radius:14px; padding:6px 12px;
   }
-  .disabled #hlSection, .disabled #drSection, .disabled #ntSection{ opacity:1; pointer-events:auto; }
+  .disabled > #hlSection, .disabled > #drSection, .disabled > #ntSection{ opacity:1; pointer-events:auto; }
   /* a PDF tab degrades the reading controls, but its own button must still work */
-  .disabled #pdfSection{ opacity:1; pointer-events:auto; }
+  .disabled > #pdfSection{ opacity:1; pointer-events:auto; }
+  /* The first row carries the message explaining why everything is greyed.
+     Dimming the one line the user has to read is the wrong thing to dim, so
+     the row stays opaque and only its controls are greyed; the row is still
+     pointer-events:none from the rule above, so they remain inert. */
+  .disabled > .row:first-child{ opacity:1; }
+  .disabled > .row:first-child .scope,
+  .disabled > .row:first-child #resetSite{ opacity:.4; }
 </style>
 </head>
 <body>

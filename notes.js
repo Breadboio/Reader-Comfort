@@ -50,18 +50,27 @@
 
     var bar = document.createElement("div");
     bar.className = "rc-note-bar";
-    var dot = document.createElement("span");
+    /* a <span> here was clickable but not focusable and announced as nothing;
+       the colour rides a custom property so the swatch can be a small circle
+       inside a target big enough to hit (WCAG 2.5.8) */
+    var dot = document.createElement("button");
     dot.className = "rc-note-dot";
-    dot.style.background = COLORS[rec.color || "yellow"].bar;
+    dot.type = "button";
+    dot.style.setProperty("--rc-dot", COLORS[rec.color || "yellow"].bar);
     dot.title = "Change colour";
+    dot.setAttribute("aria-label", "Change note colour");
     var spacer = document.createElement("span");
     spacer.className = "rc-note-spacer";
     var collapse = document.createElement("button");
     collapse.textContent = rec.collapsed ? "▸" : "▾";
     collapse.title = "Collapse";
+    collapse.type = "button";
+    collapse.setAttribute("aria-label", "Collapse note");
     var del = document.createElement("button");
     del.textContent = "✕";
     del.title = "Delete note";
+    del.type = "button";
+    del.setAttribute("aria-label", "Delete note");
     bar.append(dot, spacer, collapse, del);
 
     var body = document.createElement("textarea");
@@ -96,7 +105,7 @@
       var next = keys[(keys.indexOf(el.dataset.c) + 1) % keys.length];
       el.dataset.c = next;
       rec.color = next;
-      dot.style.background = COLORS[next].bar;
+      dot.style.setProperty("--rc-dot", COLORS[next].bar);
       persist();
     });
 

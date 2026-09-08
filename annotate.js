@@ -254,8 +254,13 @@
     Object.keys(COLORS).forEach(function (c) {
       var b = document.createElement("button");
       b.className = "rc-draw-c";
+      b.type = "button";
       b.dataset.c = c;
       b.style.background = COLORS[c];
+      /* a bare coloured square announces as nothing at all to a screen
+         reader, so name it -- the colour IS the control here */
+      b.setAttribute("aria-label", "Pen colour \u2014 " + c);
+      b.title = c.charAt(0).toUpperCase() + c.slice(1);
       colorRow.appendChild(b);
     });
     toolRow.addEventListener("click", function (e) {
