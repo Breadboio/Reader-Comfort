@@ -1,0 +1,75 @@
+{
+  "version": "v1.1.0",
+  "entity": {
+    "type": "individual",
+    "role": "owner",
+    "name": "Garrett Elliott",
+    "email": "breadxyzboi@gmail.com",
+    "description": "Independent developer building free reading and study tools, published at breadtoasting.com. The work centres on people who find ordinary text hard to read \u2014 dyslexic readers, low-vision readers, readers with visual stress or attention difficulties \u2014 and on keeping those tools free, offline, and free of tracking so they can be used by schools, libraries, and anyone else without a procurement conversation or a privacy trade-off. Everything is MIT-licensed and developed in the open.",
+    "webpageUrl": {
+      "url": "https://breadtoasting.com"
+    }
+  },
+  "projects": [
+    {
+      "guid": "reader-comfort",
+      "name": "Reader Comfort",
+      "description": "A cross-browser extension (Chrome, Edge, Firefox) that applies a full set of reading aids to any web page: page tint, text size, line and letter spacing, accessible typefaces (Atkinson Hyperlegible, Lexend, OpenDyslexic \u2014 all bundled, none fetched), a narrow reading measure, and a pointer-following reading ruler. It also carries a persistent highlighter, a freehand annotation layer, sticky notes, and a bundled PDF.js viewer with a reflowing reading mode, because a fixed PDF layout is otherwise closed to every one of these aids.\n\nIt collects nothing. No account, no server, no analytics. Settings live in the browser's own storage; highlights, notes and ink stay on the device. The single optional network call is a dictionary lookup that is off by default and sends one word. That posture is deliberate: it is what makes the extension safe to place in front of schoolchildren without a data-sharing agreement.\n\nThe interface passes its own WCAG 2.2 A/AA audit with zero violations, verified with axe-core against the built package rather than asserted. Recent work added a shortcut and macro editor, so any reading action can be bound to a key of the reader's choosing. Administrator policy support \u2014 so a school can push a configuration to managed devices rather than ask every reader to set it up by hand \u2014 is in progress and is the next release.",
+      "webpageUrl": {
+        "url": "https://breadtoasting.com/#tools"
+      },
+      "repositoryUrl": {
+        "url": "https://github.com/Breadboio/Reader-Comfort",
+        "wellKnown": "https://raw.githubusercontent.com/Breadboio/Reader-Comfort/main/.well-known/funding-manifest-urls"
+      },
+      "licenses": [
+        "spdx:MIT"
+      ],
+      "tags": [
+        "accessibility",
+        "dyslexia",
+        "low-vision",
+        "reading",
+        "browser-extension",
+        "education",
+        "privacy",
+        "wcag"
+      ]
+    }
+  ],
+  "funding": {
+    "channels": [
+      {
+        "guid": "bank",
+        "type": "bank",
+        "description": "Bank transfer. Account details supplied on request."
+      }
+    ],
+    "plans": [
+      {
+        "guid": "sustain-2027",
+        "status": "active",
+        "name": "Reader Comfort \u2014 a year of maintenance and school deployment",
+        "description": "A year of full-time-equivalent maintenance on Reader Comfort: keeping the extension current with Chrome and Firefox extension platform changes, completing administrator-policy deployment so schools and libraries can roll it out across managed devices, publishing an accessibility conformance report for public-sector procurement, translating the interface, and supporting pilot deployments. The aim is that a school can adopt it without buying anything and without signing anything away.",
+        "amount": 10000,
+        "currency": "USD",
+        "frequency": "yearly",
+        "channels": [
+          "bank"
+        ]
+      },
+      {
+        "guid": "any",
+        "status": "active",
+        "name": "Any contribution",
+        "description": "Any amount, one-time. Goes to the same work.",
+        "amount": 0,
+        "currency": "USD",
+        "frequency": "one-time",
+        "channels": [
+          "bank"
+        ]
+      }
+    ]
+  }
+}
