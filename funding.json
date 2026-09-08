@@ -20,7 +20,7 @@
       },
       "repositoryUrl": {
         "url": "https://github.com/Breadboio/Reader-Comfort",
-        "wellKnown": "https://raw.githubusercontent.com/Breadboio/Reader-Comfort/main/.well-known/funding-manifest-urls"
+        "wellKnown": "https://github.com/Breadboio/Reader-Comfort/raw/main/.well-known/funding-manifest-urls"
       },
       "licenses": [
         "spdx:MIT"
