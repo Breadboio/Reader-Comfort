@@ -19,8 +19,9 @@ DIST = ROOT / "dist"
 
 # everything the extension needs at runtime
 INCLUDE = [
-    "content.js", "highlighter.js", "annotate.js", "notes.js",
-    "background.js", "reader.css", "popup.html", "popup.js",
+    "actions.js", "content.js", "highlighter.js", "annotate.js", "notes.js",
+    "macros.js", "background.js", "reader.css", "popup.html", "popup.js",
+    "options.html", "options.js",
     "icons", "fonts",
 ]
 

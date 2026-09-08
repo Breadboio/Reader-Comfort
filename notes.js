@@ -198,8 +198,24 @@
 
   /* ---------- messaging ---------- */
 
+  /* ---------- the shared action vocabulary (shortcuts and macros) ---------- */
+
+  function doAction(id) {
+    if (typeof id !== "string") return;
+    var value = null, c = id.indexOf(":");
+    if (c > 0) { value = id.slice(c + 1); id = id.slice(0, c); }
+
+    switch (id) {
+      case "note-add":   addNote(); break;
+      case "note-color": if (COLORS[value]) { prefs.color = value; savePrefs(); } break;
+      case "notes-clear": clearPage(); break;
+    }
+  }
+
   chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     if (!msg) return;
+    if (msg.type === "rc:action") { doAction(msg.action); return; }
+    if (msg.type === "rc:actions" && Array.isArray(msg.actions)) { msg.actions.forEach(doAction); return; }
     if (msg.type === "rc:notesGetState") {
       sendResponse({ count: notes.length, color: prefs.color, colors: COLORS });
       return true;

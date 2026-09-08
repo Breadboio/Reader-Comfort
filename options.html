@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Reader Comfort — Settings</title>
+<style>
+  :root{
+    --paper:#FAF3E3; --paper-2:#F3EAD5; --panel:#FFFDF6;
+    --ink:#2B2721; --ink-soft:#5C554A; --rule:#DFD3B8; --accent:#2F5FA8;
+    --warn:#8A6100; --bad:#A03422; --good:#2C6E49;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --paper:#1C2026; --paper-2:#242A32; --panel:#232830;
+      --ink:#E4E8EE; --ink-soft:#A4AEBC; --rule:#3A424D; --accent:#8CB8F0;
+      --warn:#E0B155; --bad:#F09080; --good:#7FD6A6; }
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:Verdana,'Segoe UI',system-ui,sans-serif; font-size:14px; line-height:1.5;
+  }
+  header{
+    background:var(--paper-2); border-bottom:2px solid var(--rule);
+    padding:18px 20px;
+  }
+  .wrap{max-width:760px; margin:0 auto}
+  header .wrap{display:flex; align-items:center; gap:12px}
+  header img{width:28px; height:28px; border-radius:7px; display:block}
+  header h1{margin:0; font-size:17px; font-weight:700}
+  header .sub{margin:2px 0 0; font-size:12.5px; color:var(--ink-soft)}
+  main{padding:20px 20px 60px}
+
+  section{
+    background:var(--panel); border:2px solid var(--rule); border-radius:12px;
+    padding:16px 18px; margin:0 0 18px;
+  }
+  section > h2{
+    margin:0 0 4px; font-size:14px; font-weight:700;
+    display:flex; align-items:center; gap:8px;
+  }
+  section > .lead{margin:0 0 14px; font-size:12.5px; color:var(--ink-soft)}
+  svg.ic{width:16px; height:16px; flex:0 0 auto}
+
+  /* ---------- a binding row ---------- */
+  .bind{border:2px solid var(--rule); border-radius:10px; padding:12px; margin:0 0 12px; background:var(--paper)}
+  .bind[data-off="true"]{opacity:.55}
+  .bindtop{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+  .bindname{
+    flex:1 1 180px; min-width:140px; font:inherit; font-size:13px; font-weight:600;
+    background:var(--panel); color:var(--ink);
+    border:2px solid var(--rule); border-radius:8px; padding:6px 9px;
+  }
+  .bindname:focus{outline:2px solid var(--accent); outline-offset:1px}
+
+  button{font:inherit; cursor:pointer}
+  .key{
+    min-width:150px; font-size:12.5px; font-weight:700; letter-spacing:.02em;
+    background:var(--panel); color:var(--ink);
+    border:2px dashed var(--rule); border-radius:8px; padding:6px 12px;
+  }
+  .key[data-set="true"]{border-style:solid; border-color:var(--ink)}
+  .key[data-rec="true"]{border-color:var(--accent); color:var(--accent); border-style:solid}
+  .key:hover{border-color:var(--accent)}
+
+  .mini{
+    font-size:12px; font-weight:600; background:var(--panel); color:var(--ink-soft);
+    border:2px solid var(--rule); border-radius:8px; padding:5px 9px;
+  }
+  .mini:hover{color:var(--ink); border-color:var(--ink-soft)}
+  .mini.danger:hover{color:var(--bad); border-color:var(--bad)}
+
+  .sw{display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink-soft); cursor:pointer}
+
+  .msg{margin:8px 0 0; font-size:12px}
+  .msg[data-level="error"]{color:var(--bad); font-weight:700}
+  .msg[data-level="warn"]{color:var(--warn)}
+  .msg[hidden]{display:none}
+
+  .steps{display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:10px}
+  .step{
+    display:flex; align-items:center; gap:4px;
+    background:var(--panel); border:2px solid var(--rule); border-radius:16px;
+    padding:3px 4px 3px 10px; font-size:12px; font-weight:600;
+  }
+  .step .n{color:var(--ink-soft); font-weight:700; margin-right:2px}
+  .step button{
+    border:0; background:none; color:var(--ink-soft); padding:1px 4px; border-radius:5px;
+    font-size:12px; line-height:1;
+  }
+  .step button:hover{background:var(--rule); color:var(--ink)}
+  .step button.x:hover{background:var(--bad); color:#fff}
+  select.addstep{
+    font:inherit; font-size:12px; font-weight:600; padding:5px 8px; border-radius:16px;
+    border:2px dashed var(--rule); background:var(--panel); color:var(--ink); cursor:pointer;
+  }
+  .does{margin:9px 0 0; font-size:12px; color:var(--ink-soft)}
+  .empty{
+    border:2px dashed var(--rule); border-radius:10px; padding:18px; text-align:center;
+    color:var(--ink-soft); font-size:13px; margin:0 0 12px;
+  }
+
+  .primary{
+    background:var(--accent); color:#fff; border:2px solid var(--accent);
+    border-radius:9px; padding:8px 14px; font-size:13px; font-weight:700;
+  }
+  .primary:hover{filter:brightness(1.08)}
+  .rowbtns{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+
+  .chips{display:flex; flex-wrap:wrap; gap:7px; margin-top:8px}
+  .chips button{
+    font-size:12px; font-weight:600; background:var(--panel); color:var(--ink);
+    border:2px solid var(--rule); border-radius:16px; padding:5px 11px;
+  }
+  .chips button:hover{border-color:var(--accent); color:var(--accent)}
+  .chips button[disabled]{opacity:.45; cursor:default; border-style:dashed}
+
+  table.cmds{width:100%; border-collapse:collapse; font-size:13px}
+  table.cmds td{padding:6px 0; border-bottom:1px solid var(--rule); vertical-align:middle}
+  table.cmds tr:last-child td{border-bottom:0}
+  table.cmds td.k{text-align:right; white-space:nowrap}
+  kbd{
+    font-family:ui-monospace,monospace; background:var(--paper-2); border:1px solid var(--rule);
+    border-radius:5px; padding:2px 7px; font-size:12px; font-weight:700;
+  }
+  kbd.unset{background:none; border-style:dashed; font-weight:400; color:var(--ink-soft)}
+
+  label.check{display:flex; align-items:flex-start; gap:9px; font-size:13px; cursor:pointer; margin:0 0 11px}
+  label.check:last-of-type{margin-bottom:0}
+  label.check input{margin-top:3px}
+  label.check .hint{display:block; font-size:12px; color:var(--ink-soft); margin-top:1px}
+
+  #saved{
+    position:fixed; right:18px; bottom:18px; background:var(--good); color:#062015;
+    border-radius:999px; padding:7px 15px; font-size:12.5px; font-weight:700;
+    opacity:0; transition:opacity .2s; pointer-events:none;
+  }
+  #saved[data-show]{opacity:1}
+  @media (prefers-color-scheme: dark){ #saved{color:#08130d} }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <img src="icons/icon32.png" alt="">
+    <div>
+      <h1>Reader Comfort — Settings</h1>
+      <p class="sub">Shortcuts, macros and page gestures.</p>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section>
+    <h2>
+      <svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 6h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" opacity=".35"></path><path d="M5.5 9.5h2v2h-2zM9 9.5h2v2H9zM12.5 9.5h2v2h-2zM16 9.5h2.5v2H16zM7 13h10v2H7z"></path></svg>
+      Your shortcuts &amp; macros
+    </h2>
+    <p class="lead">Pick a key combination, then choose what it should do. Add a
+    second step and it becomes a macro &mdash; one key, several changes at once.
+    These work on any page you're reading.</p>
+
+    <div id="bindList"></div>
+
+    <div class="rowbtns">
+      <button class="primary" id="addBind">+ New shortcut</button>
+      <button class="mini" id="clearAll">Remove all</button>
+    </div>
+
+    <p class="lead" style="margin:18px 0 0"><b>Ready-made ones</b> &mdash; click to add:</p>
+    <div class="chips" id="suggest"></div>
+  </section>
+
+  <section>
+    <h2>
+      <svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="10" opacity=".35"></circle><path d="M11 7h2v6h-2zM11 15h2v2h-2z"></path></svg>
+      Built-in browser shortcuts
+    </h2>
+    <p class="lead">These are registered with the browser itself, so they keep
+    working even where a page blocks key presses. Only the browser can change
+    them.</p>
+    <table class="cmds"><tbody id="cmdList"></tbody></table>
+    <div class="rowbtns" style="margin-top:12px">
+      <button class="mini" id="openShortcuts">Change these in the browser</button>
+    </div>
+    <p class="msg" id="cmdHint" hidden></p>
+  </section>
+
+  <section>
+    <h2>
+      <svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 2.5l11.5 8.2-4.8 1-2.4 4.6z"></path><path d="M14 14l5.5 5.5-2 2L12 16z" opacity=".35"></path></svg>
+      Mouse gestures
+    </h2>
+    <p class="lead">Shortcuts you make with the pointer instead of the keyboard.</p>
+    <label class="check">
+      <input type="checkbox" id="rulerDblclick">
+      <span>Triple-click the page to turn the reading ruler on or off
+        <span class="hint">Ignored on links, buttons and text boxes.</span></span>
+    </label>
+    <label class="check">
+      <input type="checkbox" id="rulerWheel">
+      <span>Hold <b>Alt</b> and scroll to change the ruler's height
+        <span class="hint">Only while the ruler is showing. The height appears inside the ruler as you go.</span></span>
+    </label>
+    <label class="check">
+      <input type="checkbox" id="macroToast">
+      <span>Confirm on screen when a shortcut runs
+        <span class="hint">A small label naming what fired, so a macro doesn't feel like nothing happened.</span></span>
+    </label>
+    <p class="lead" style="margin:12px 0 0">Gestures are part of your all-sites
+    settings. A site you've given its own settings to uses whatever is set there.</p>
+  </section>
+</main>
+
+<div id="saved">Saved</div>
+<script src="actions.js"></script>
+<script src="options.js"></script>
+</body>
+</html>

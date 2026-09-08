@@ -19,7 +19,8 @@
     measure: "off",     // off | narrow  (cap line length on the main column)
     ruler: false,
     rulerHeight: 130,
-    rulerDblclick: true, // double-click the page toggles the ruler
+    rulerDblclick: true, // triple-click the page toggles the ruler
+    rulerWheel: true,   // Alt + mouse wheel changes the ruler's height
     killItalics: false, // render <em>/<i> as bold instead of slanted
     linkUnderline: false,
     reduceMotion: false
@@ -166,6 +167,9 @@
     applyAttrs(s);
     pushCss(css);
     ensureRuler();
+    /* the wheel gesture sets an inline height for instant feedback; once the
+       value is in the stylesheet, drop it so the popup's slider isn't shadowed */
+    if (ruler) ruler.style.height = "";
     if (s.enabled && s.ruler) wireMouse();
   }
 
@@ -179,7 +183,26 @@
       (document.head || root).appendChild(dynStyleEl);
     }
     dynStyleEl.textContent = css;
-    // CSP-proof path: let the background inject it via chrome.scripting
+    pushCssToBackground(css);
+  }
+
+  /* The background injection is the CSP-proof path, but it is a round trip and
+     an Alt+wheel gesture or a macro can rewrite the CSS dozens of times a
+     second. Send the first change straight through, then trail the rest. */
+  var bgT = null, bgPending = null, bgLast = 0;
+
+  function pushCssToBackground(css) {
+    var now = Date.now();
+    if (now - bgLast > 150) { bgLast = now; sendCss(css); return; }
+    bgPending = css;
+    if (bgT) return;
+    bgT = setTimeout(function () {
+      bgT = null; bgLast = Date.now();
+      sendCss(bgPending);
+    }, 150);
+  }
+
+  function sendCss(css) {
     try {
       chrome.runtime.sendMessage({ type: "rc:css", css: css }, function () {
         void chrome.runtime.lastError;
@@ -211,6 +234,58 @@
     }, { passive: true });
   }
 
+  /* ---------- ruler height: Alt + wheel, and the keyboard actions ---------- */
+
+  var RULER_MIN = 40, RULER_MAX = 400;
+  var rulerPersistT = null, sizeTagT = null;
+
+  function clampRuler(v) { return Math.max(RULER_MIN, Math.min(RULER_MAX, Math.round(v))); }
+
+  document.addEventListener("wheel", function (e) {
+    if (!e.altKey || e.ctrlKey || e.metaKey) return;
+    if (!current.enabled || !current.ruler || current.rulerWheel === false) return;
+    ensureRuler();
+    if (!ruler) return;
+
+    e.preventDefault();  // Alt+wheel scrolls sideways on some platforms
+
+    /* deltaY is roughly 100 a notch on a mouse and a handful of pixels on a
+       trackpad, so scale rather than count notches; the cap stops a flung
+       trackpad from crossing the whole range in a single event. */
+    var d = e.deltaY;
+    if (e.deltaMode === 1) d *= 16;         // lines
+    else if (e.deltaMode === 2) d *= 400;   // pages
+    d = Math.max(-120, Math.min(120, d));
+
+    var h = clampRuler(current.rulerHeight - d * 0.25);
+    if (h === current.rulerHeight) return;
+
+    current.rulerHeight = h;
+    ruler.style.height = h + "px";          // instant; apply() clears it later
+    showRulerSize(h);
+
+    clearTimeout(rulerPersistT);
+    rulerPersistT = setTimeout(function () { persistPatch({ rulerHeight: h }); }, 260);
+  }, { passive: false, capture: true });
+
+  function nudgeRuler(delta) {
+    var h = clampRuler(current.rulerHeight + delta);
+    if (h === current.rulerHeight) return;
+    persistPatch({ rulerHeight: h });
+    showRulerSize(h);
+  }
+
+  /* a readout inside the ruler itself, so the size is a number and not a guess */
+  function showRulerSize(h) {
+    if (!ruler) return;
+    ruler.setAttribute("data-size", h + "px");
+    ruler.setAttribute("data-sizing", "");
+    clearTimeout(sizeTagT);
+    sizeTagT = setTimeout(function () {
+      if (ruler) ruler.removeAttribute("data-sizing");
+    }, 900);
+  }
+
   /* ---------- storage ---------- */
 
   function computeEffective(store) {
@@ -232,6 +307,69 @@
       apply(computeEffective(store || {}));
     });
   });
+
+  /* ---------- actions ----------
+   * The vocabulary shared with macros.js and the settings page. Ids are
+   * either a verb ("size-up") or a verb and a value ("tint:dark"); anything
+   * this module does not own belongs to the highlighter, draw or notes
+   * script and falls through here untouched.
+   */
+
+  var ORDER = {
+    tint:    ["off", "cream", "blue", "mint", "peach", "dark"],
+    leading: ["off", "tight", "normal", "airy"],
+    spacing: ["off", "normal", "wide"],
+    font:    ["off", "atkinson", "lexend", "opendyslexic", "system", "mono"],
+    measure: ["off", "narrow"]
+  };
+
+  function nextIn(list, value) {
+    var i = list.indexOf(value);
+    return list[(i + 1) % list.length];
+  }
+
+  function clampSize(v) { return Math.max(80, Math.min(220, v)); }
+
+  function doAction(id) {
+    if (typeof id !== "string") return;
+    var value = null, c = id.indexOf(":");
+    if (c > 0) { value = id.slice(c + 1); id = id.slice(0, c); }
+
+    switch (id) {
+      case "toggle-enabled":   persistPatch({ enabled: !current.enabled }); break;
+      case "enabled":          persistPatch({ enabled: value === "on" }); break;
+
+      case "ruler-toggle":     persistPatch({ ruler: !current.ruler }); break;
+      case "ruler":            persistPatch({ ruler: value === "on" }); break;
+      case "ruler-bigger":     nudgeRuler(20); break;
+      case "ruler-smaller":    nudgeRuler(-20); break;
+
+      case "measure-toggle":   persistPatch({ measure: current.measure === "narrow" ? "off" : "narrow" }); break;
+      case "italics-toggle":   persistPatch({ killItalics: !current.killItalics }); break;
+      case "italics":          persistPatch({ killItalics: value === "on" }); break;
+      case "underline-toggle": persistPatch({ linkUnderline: !current.linkUnderline }); break;
+      case "underline":        persistPatch({ linkUnderline: value === "on" }); break;
+      case "motion-toggle":    persistPatch({ reduceMotion: !current.reduceMotion }); break;
+      case "motion":           persistPatch({ reduceMotion: value === "on" }); break;
+
+      case "size-up":          persistPatch({ size: clampSize(current.size + 10) }); break;
+      case "size-down":        persistPatch({ size: clampSize(current.size - 10) }); break;
+      case "size-reset":       persistPatch({ size: 100 }); break;
+
+      case "tint": case "leading": case "spacing": case "font": case "measure":
+        if (ORDER[id].indexOf(value) >= 0) {
+          var patch = {}; patch[id] = value; persistPatch(patch);
+        }
+        break;
+
+      case "tint-cycle":       persistPatch({ tint: nextIn(ORDER.tint, current.tint) }); break;
+      case "leading-cycle":    persistPatch({ leading: nextIn(ORDER.leading, current.leading) }); break;
+      case "spacing-cycle":    persistPatch({ spacing: nextIn(ORDER.spacing, current.spacing) }); break;
+      case "font-cycle":       persistPatch({ font: nextIn(ORDER.font, current.font) }); break;
+
+      case "reset-all":        persistPatch(Object.assign({}, DEFAULTS)); break;
+    }
+  }
 
   /* ---------- messaging (popup + keyboard commands) ---------- */
 
@@ -256,10 +394,29 @@
       if (msg.command === "toggle-ruler") persistPatch({ ruler: !current.ruler });
       if (msg.command === "toggle-enabled") persistPatch({ enabled: !current.enabled });
     }
+    if (msg && msg.type === "rc:action") doAction(msg.action);
+    if (msg && msg.type === "rc:actions" && Array.isArray(msg.actions)) msg.actions.forEach(doAction);
   });
 
-  /* write a partial settings change to whichever layer governs this origin */
+  /* Write a partial settings change to whichever layer governs this origin.
+     The change lands on screen immediately and the storage write is coalesced:
+     a macro fires several patches in a row and the wheel gesture fires dozens,
+     and a plain read-modify-write per patch would both lose steps to the race
+     between them and chew through storage.sync's write quota. */
+  var pendingPatch = null, patchT = null;
+
   function persistPatch(patch) {
+    current = Object.assign({}, current, patch);
+    apply(current);
+    pendingPatch = Object.assign(pendingPatch || {}, patch);
+    clearTimeout(patchT);
+    patchT = setTimeout(flushPatch, 80);
+  }
+
+  function flushPatch() {
+    var patch = pendingPatch;
+    pendingPatch = null;
+    if (!patch) return;
     chrome.storage.sync.get(["global", "sites"], function (store) {
       store = store || {};
       var sites = store.sites || {};
@@ -282,9 +439,7 @@
     if (e.detail !== 3) return;
     if (!current.enabled || !current.rulerDblclick) return;
     if (e.target && e.target.closest && e.target.closest(IGNORE_CLICK)) return;
-    current.ruler = !current.ruler;
-    apply(current);                 // instant, don't wait for the storage round-trip
-    persistPatch({ ruler: current.ruler });
+    persistPatch({ ruler: !current.ruler });
     var sel = window.getSelection();
     if (sel) sel.removeAllRanges();
   });

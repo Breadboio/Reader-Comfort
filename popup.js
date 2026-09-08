@@ -5,7 +5,8 @@
   var DEFAULTS = {
     enabled: true, tint: "off", size: 100, leading: "off", spacing: "off",
     font: "off", measure: "off", ruler: false, rulerHeight: 130,
-    rulerDblclick: true, killItalics: false, linkUnderline: false, reduceMotion: false
+    rulerDblclick: true, rulerWheel: true,
+    killItalics: false, linkUnderline: false, reduceMotion: false
   };
 
   var tabId = null;
@@ -79,6 +80,20 @@
     initAnnotate();
     initNotes();
     initExport();
+  });
+
+  document.getElementById("openOptions").addEventListener("click", function () {
+    if (chrome.runtime.openOptionsPage) {
+      chrome.runtime.openOptionsPage(function () {
+        void chrome.runtime.lastError;
+        window.close();
+      });
+    } else {
+      chrome.tabs.create({ url: chrome.runtime.getURL("options.html") }, function () {
+        void chrome.runtime.lastError;
+        window.close();
+      });
+    }
   });
 
   function degrade(msg) {
@@ -514,6 +529,7 @@
     $("ruler").setAttribute("aria-pressed", String(s.ruler));
     $("rulerHeight").value = s.rulerHeight;
     $("rulerDblclick").checked = s.rulerDblclick !== false;
+    $("rulerWheel").checked = s.rulerWheel !== false;
     $("killItalics").checked = s.killItalics;
     $("linkUnderline").checked = s.linkUnderline;
     $("reduceMotion").checked = s.reduceMotion;
@@ -588,9 +604,10 @@
       s.rulerHeight = parseInt(this.value, 10) || 130; commit();
     });
 
-    ["rulerDblclick", "killItalics", "linkUnderline", "reduceMotion"].forEach(function (k) {
+    ["rulerDblclick", "rulerWheel", "killItalics", "linkUnderline", "reduceMotion"].forEach(function (k) {
       $(k).addEventListener("change", function () { s[k] = this.checked; commit(); });
     });
+
   }
 
   function bindGroup(containerId, attr, key) {

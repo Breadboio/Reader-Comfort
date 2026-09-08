@@ -299,8 +299,38 @@
 
   /* ---------- messaging ---------- */
 
+  /* ---------- the shared action vocabulary (shortcuts and macros) ---------- */
+
+  function doAction(id) {
+    if (typeof id !== "string") return;
+    var value = null, c = id.indexOf(":");
+    if (c > 0) { value = id.slice(c + 1); id = id.slice(0, c); }
+
+    switch (id) {
+      case "draw-toggle": if (layer) setDrawMode(!prefs.drawMode); break;
+      case "draw":        if (layer) setDrawMode(value === "on"); break;
+      case "draw-tool":
+        if (value === "pen" || value === "eraser") {
+          prefs.tool = value;
+          if (layer) layer.setAttribute("data-tool", prefs.tool);
+          paintBar(); savePrefs();
+        }
+        break;
+      case "draw-color":
+        if (COLORS[value]) { prefs.color = value; paintBar(); savePrefs(); }
+        break;
+      case "draw-width":
+        if (WIDTHS[value]) { prefs.width = value; paintBar(); savePrefs(); }
+        break;
+      case "draw-undo":  undo(); break;
+      case "draw-clear": clearPage(); break;
+    }
+  }
+
   chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     if (!msg) return;
+    if (msg.type === "rc:action") { doAction(msg.action); return; }
+    if (msg.type === "rc:actions" && Array.isArray(msg.actions)) { msg.actions.forEach(doAction); return; }
     if (msg.type === "rc:drawGetState") {
       sendResponse({ drawMode: prefs.drawMode, color: prefs.color, width: prefs.width,
         tool: prefs.tool, count: strokes.length, colors: COLORS });

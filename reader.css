@@ -25,6 +25,31 @@
 }
 html[data-rc-ruler="on"] #rc-ruler { display: block; }
 
+/* The height readout that appears while Alt+wheel is resizing the ruler.
+   A pseudo-element rather than a node, so nothing new lands in the page. */
+#rc-ruler::after {
+  content: attr(data-size);
+  position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+  padding: 4px 8px; border-radius: 6px; white-space: nowrap;
+  background: #1C2026; color: #F4F7FB;
+  font: 700 12px/1 ui-monospace, "Cascadia Mono", Consolas, monospace;
+  opacity: 0; transition: opacity .15s ease;
+}
+#rc-ruler[data-sizing]::after { opacity: .92; }
+
+/* ---------- shortcut / macro confirmation ---------- */
+#rc-toast {
+  position: fixed; left: 50%; bottom: 28px; z-index: 2147483647;
+  transform: translateX(-50%) translateY(6px); pointer-events: none;
+  max-width: 70vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  padding: 8px 15px; border-radius: 999px;
+  background: rgba(28,32,38,.94); color: #F4F7FB;
+  font: 600 13px/1.3 system-ui, -apple-system, "Segoe UI", sans-serif;
+  box-shadow: 0 8px 26px rgba(0,0,0,.3);
+  opacity: 0; transition: opacity .14s ease, transform .14s ease;
+}
+#rc-toast[data-show] { opacity: 1; transform: translateX(-50%) translateY(0); }
+
 /* ---------- highlighter ---------- */
 mark.rc-hl {
   color: inherit !important; background: transparent; border-radius: 2px;

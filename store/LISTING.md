@@ -63,9 +63,21 @@ settings and your highlights/notes stay in your own browser. The only thing that
 ever leaves your browser is a single word, only when you enable the dictionary.
 Full policy: https://github.com/Breadboio/Reader-Comfort/blob/main/PRIVACY.md
 
-KEYBOARD
+KEYBOARD — AND YOUR OWN SHORTCUTS
 Alt+R reading ruler · Alt+H quick-highlight · Alt+D draw · Alt+N sticky note
 (rebind any of them at chrome://extensions/shortcuts)
+
+A browser only lets an extension claim four keys, so there's a shortcut editor
+of its own: open the panel and click "Shortcuts & macros...". Bind any key
+combination to any of 80-odd actions — or to a list of them, so one key can go
+dark, switch to Hyperlegible and open up the line spacing together. Ready-made
+macros for night reading, focus mode and a dyslexia-friendly setup are one
+click away. Shortcuts stay quiet while you're typing in a text field.
+
+RULER GESTURES
+Triple-click anywhere on the page to show or hide the reading ruler, and hold
+Alt while you scroll to change its height without reaching for the panel. Both
+gestures can be switched off if they get in your way.
 
 Open source: https://github.com/Breadboio/Reader-Comfort
 

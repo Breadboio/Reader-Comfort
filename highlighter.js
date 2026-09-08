@@ -583,8 +583,81 @@
 
   /* ---------- messaging ---------- */
 
+  /* ---------- the shared action vocabulary (shortcuts and macros) ---------- */
+
+  var COLOR_ORDER = Object.keys(COLORS);
+
+  function highlightSelection() {
+    if (!prefs.enabled) return;
+    var sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return;
+    var range = sel.getRangeAt(0);
+    if (range.collapsed || !range.toString().trim()) return;
+    if (inEditable(range.commonAncestorContainer)) return;
+    hideBar();
+    applyHighlight(range.cloneRange(), prefs.color);
+  }
+
+  function copyAll() {
+    var text = highlights.map(function (h) { return h.exact; }).join("\n\n");
+    if (!text) return;
+    /* the keypress that ran the macro still counts as user activation by the
+       time the action gets here, so the async clipboard is available; the old
+       execCommand path covers browsers that disagree */
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).catch(function () { copyFallback(text); });
+        return;
+      }
+    } catch (e) {}
+    copyFallback(text);
+  }
+
+  function copyFallback(text) {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("aria-hidden", "true");
+    ta.style.cssText = "position:fixed;top:-1000px;left:-1000px;opacity:0";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); } catch (e) {}
+    ta.remove();
+  }
+
+  function doAction(id) {
+    if (typeof id !== "string") return;
+    var value = null, c = id.indexOf(":");
+    if (c > 0) { value = id.slice(c + 1); id = id.slice(0, c); }
+
+    switch (id) {
+      case "hl-toggle":       setEnabled(!prefs.enabled); break;
+      case "hl":              setEnabled(value === "on"); break;
+      case "hl-quick-toggle": prefs.quick = !prefs.quick; savePrefs(); break;
+      case "hl-quick":        prefs.quick = value === "on"; savePrefs(); break;
+      case "hl-selection":    highlightSelection(); break;
+      case "hl-color":
+        if (COLORS[value]) { prefs.color = value; savePrefs(); }
+        break;
+      case "hl-color-cycle":
+        prefs.color = COLOR_ORDER[(COLOR_ORDER.indexOf(prefs.color) + 1) % COLOR_ORDER.length];
+        savePrefs();
+        break;
+      case "hl-copy":  copyAll(); break;
+      case "hl-clear": clearPage(); break;
+    }
+  }
+
+  function setEnabled(on) {
+    prefs.enabled = !!on;
+    applyEnabled();
+    if (!prefs.enabled) { hideBar(); hideDict(); }
+    savePrefs();
+  }
+
   chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     if (!msg) return;
+    if (msg.type === "rc:action") { doAction(msg.action); return; }
+    if (msg.type === "rc:actions" && Array.isArray(msg.actions)) { msg.actions.forEach(doAction); return; }
     if (msg.type === "rc:hlGetState") {
       sendResponse({
         count: highlights.length,

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Reader Comfort",
-  "version": "1.8.1",
+  "version": "1.9.0",
   "description": "Page tint, text size/spacing, accessible fonts, a reading ruler, highlighter, annotations, and sticky notes for any website.",
   "browser_specific_settings": {
     "gecko": {
@@ -28,6 +28,10 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
   "action": {
     "default_popup": "popup.html",
     "default_title": "Reader Comfort",
@@ -40,7 +44,7 @@
     {
       "matches": ["<all_urls>"],
       "css": ["reader.css"],
-      "js": ["content.js", "highlighter.js", "annotate.js", "notes.js"],
+      "js": ["actions.js", "content.js", "highlighter.js", "annotate.js", "notes.js", "macros.js"],
       "run_at": "document_start",
       "all_frames": false
     }
